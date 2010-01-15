@@ -6,7 +6,7 @@ Created on 13 janv. 2010
 
 import KaraCos
 
-class Store(KaraCos.Db.AppNode):
+class Store(KaraCos.Db.WebNode):
     '''
     Basic resource
     '''
@@ -14,10 +14,11 @@ class Store(KaraCos.Db.AppNode):
 
     def __init__(self,parent=None,base=None,data=None,domain=None):
         assert isinstance(domain,KaraCos.Db.Domain), "domain in not type Domain"
-        KaraCos.Db.AppNode.__init__(self,parent=parent,base=base,data=data)
+        KaraCos.Db.WebNode.__init__(self,parent=parent,base=base,data=data)
 
     @staticmethod
     def create(parent=None, base=None,data=None):
         assert isinstance(data,dict)
-        data['appType'] = 'Store'
-        return KaraCos.Db.AppNode.create(parent=parent,base=base,data=data)
+        if 'WebType' not in data:
+            data['WebType'] = 'Store'
+        return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data)

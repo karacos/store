@@ -26,6 +26,6 @@ class StoreItem(KaraCos.Db.Resource):
     @staticmethod
     def create(parent=None, base=None,data=None):
         assert isinstance(data,dict)
-        if 'appType' not in data:
-            data['appType'] = 'StoreItem'
+        if 'WebType' not in data:
+            data['WebType'] = 'StoreItem'
         return KaraCos.Db.Resource.create(parent=parent,base=base,data=data)
