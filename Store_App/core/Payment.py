@@ -6,19 +6,50 @@ Created on 13 janv. 2010
 
 import KaraCos
 
-class ShoppingCart(KaraCos.Db.WebNode):
+class Payment(KaraCos.Db.Node):
     '''
     Basic resource
     '''
 
 
-    def __init__(self,parent=None,base=None,data=None,domain=None):
-        assert isinstance(domain,KaraCos.Db.Domain), "domain in not type Domain"
-        KaraCos.Db.WebNode.__init__(self,parent=parent,base=base,data=data)
+    def __init__(self,parent=None,base=None,data=None):
+        KaraCos.Db.Node.__init__(self,parent=parent,base=base,data=data)
+        self.__cart__ = parent
+        self.__store__ = parent.__store__
+        self._service = self.__store__._get_service(self['service'])
 
     @staticmethod
-    def create(parent=None, base=None,data=None):
+    def create(parent=None, base=None,data=None,owner=None):
+        assert isinstance(parent,KaraCos.Db.ShoppingCart), "Parent type invalid : %s - Should be Store" % type(parent)
+        assert 'service' in data
+        assert data['service'] in parent.__store__._get_services()
         assert isinstance(data,dict)
-        if 'WebType' not in data:
-            data['WebType'] = 'ShoppingCart'
-        return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data)
+        if 'type' not in data:
+            data['type'] = 'Payment'
+        result = KaraCos.Db.Node.create(parent=parent,base=base,data=data,owner=owner)
+        return result
+
+    @KaraCos._Db.isaction
+    def do_forward(self):
+        """
+        Creates payment for service
+        """
+        return self._service.do_forward(self.__cart__,self)
+    
+    @KaraCos._Db.isaction
+    def do_callback(self,action,*args,**kw):
+        """
+        """
+        self.log.info("do_callback : -- %s -- %s --" % (args,kw))
+        return self._service.do_callback(self,action,*args,**kw)
+
+    def do_cancel(self):
+        ""
+        return "Operation Cancelled"
+    
+    def do_validate(self):
+        ""
+        return "Operation Validated"
+        
+        
+        
