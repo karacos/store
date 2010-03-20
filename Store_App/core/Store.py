@@ -5,6 +5,7 @@ Created on 13 janv. 2010
 '''
 from uuid import uuid4
 import sys
+import cherrypy
 import KaraCos
 _ = KaraCos._
 fields = KaraCos._Rpc.DynForm.fields
@@ -28,40 +29,52 @@ class Store(KaraCos.Db.WebNode):
     
     
     @KaraCos._Db.ViewsProcessor.isview('self','javascript')
-    def __get_active_cart_for_person__(self,person_id):
+    def __get_open_cart_for_customer__(self,customer_id):
         """
         function(doc) {
             if (doc.parent_id == "%s" && doc.person_id == "%s" && doc.type == "ShoppingCart") {
-                if (doc.is_open == "true")
+                if (doc.status == "open")
                     emit(doc._id,doc._id)
                 }
             }
         """
     
-    def _get_active_cart_for_person(self,person):
-        KaraCos._Db.log.debug("BEGIN _get_active_cart_for_person ")
-        assert isinstance(person,KaraCos.Db.Person), "Parameter person must be Person"
+    def _get_open_cart_for_customer(self,customer_id):
+        KaraCos._Db.log.debug("BEGIN _get_active_cart_for_customer")
+        assert isinstance(customer_id,basestring), "Parameter person must be Person"
         result = None
-        carts = self.__get_active_cart_for_person__(person.id)
-        assert carts.__len__() <= 1, "_get_active_cart_for_person : More than one active Cart for person"
+        carts = self.__get_active_cart_for_person__(customer_id)
+        assert carts.__len__() <= 1, "_get_active_cart_for_customer : More than one active Cart for person"
         if carts.__len__() == 1:
             for cart in carts:
 #                    KaraCos._Db.log.debug("get_child_by_name : db.key = %s db.value = %s" % (child.key,domain.value) )
                 result = self.db[cart.key]
         else:
             name = "%s" % uuid4().hex
-            data = {'name':name, 'is_open': 'true', 'person_id': person.id}
+            data = {'name':name, 'status':'shop_browse', 'is_active': 'true', 'person_id': customer_id}
             self._create_child_node(data=data,type="ShoppingCart")
             result = self.__childrens__[name]
     
         return result
+    
+    def get_open_cart_for_user(self):
+        ""
+        customer_id = ''
+        if self.__domain__.is_user_authenticated():
+            customer_id = self.__domain__.get_user_auth()
+        else:
+            customer_id = 'anonymous.%s' % cherrypy.session._id
+        return self._get_open_cart_for_customer(customer_id)
+            
+        
+        
     
     @KaraCos._Db.isaction
     def view_shopping_cart(self):
         """
         """
         person = self.__domain__._get_person_data()
-        return self._get_active_cart_for_person(person)
+        return self.get_open_cart_for_user()
     
     @KaraCos._Db.isaction
     def _get_services(self):
@@ -87,27 +100,35 @@ class Store(KaraCos.Db.WebNode):
         return self.__services__[service]
     
     @KaraCos._Db.isaction
-    def pay(self,*args,**kw):
+    def pay_cart(self,*args,**kw):
         """
         """
         assert 'service' in kw
         service = kw['service']
         assert service in self._get_services()
         person = self.__domain__._get_person_data()
-        cart = self._get_active_cart_for_person(person)
+        cart = self.get_open_cart_for_user()
+        
         payment = cart._create_payment(self._get_service(service))
         return payment.do_forward()
         
+    
+    @KaraCos._Db.isaction
+    def validate_cart(self):
+        """
+        Check for valid user, create user if required
+        """
         
     @KaraCos.expose
     def pay_callback(self,*args,**kwds):
         """
+        url handler for payment services callback
         """
         arg_list,kw = args
         payment_id,action = arg_list
         self.log.info("pay_callback : -- %s -- %s --" % (payment_id,action))
-        person = self.__domain__._get_person_data()
-        cart = self._get_active_cart_for_person(person)
+        user = self.__domain__._get_person_data()
+        cart = self._get_process_pay_cart_for_payment(payment)
         payment = cart.get_child_by_id(payment_id)
         self.log.info("pay_callback : -- %s --" % (payment))
         result = payment.do_callback(action,*(),**kw)

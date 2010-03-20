@@ -67,7 +67,7 @@ class ShoppingCart(KaraCos.Db.Node):
             result['net_total'] = result['net_total'] + result['items'][item.key]['net_total']
         return result
     
-    def _add_shipping_adress(self,adress):
+    def _add_shipping_adress_(self,adress):
         ""
     def __get_active_payment__(self):
         """
@@ -105,10 +105,7 @@ class ShoppingCart(KaraCos.Db.Node):
         name = "%s" % uuid4().hex
         data = {'name':name,'service':service['_name'] ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
+        self['status'] = 'process_pay'
         return self.__childrens__[name]
-        
-        
-    def _cancel_payment(self):
-        ""
         
     

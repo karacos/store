@@ -68,9 +68,7 @@ class StoreItem(KaraCos.Db.Resource):
     @KaraCos._Db.isaction
     def add_to_cart(self,*args,**kw):
         "Add item to ShoppingCart, with optional quantity, default is 1"
-        
-        person = self.__domain__._get_person_data()
-        cart = self.__store__._get_active_cart_for_person(person)
+        cart = self.__store__.get_open_cart_for_user()
         kw['item'] = self
         if 'number' not in kw:
             kw['number'] = 1

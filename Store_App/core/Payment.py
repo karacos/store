@@ -41,14 +41,22 @@ class Payment(KaraCos.Db.Node):
         """
         """
         self.log.info("do_callback : -- %s -- %s --" % (args,kw))
-        return self._service.do_callback(self,action,*args,**kw)
+        result = self._service.do_callback(self,action,*args,**kw)
+        
+        return result
 
     def do_cancel(self):
         ""
+        self['status'] = 'canceled'
+        self.parent['is_open'] = 'false'
+        self.__cart__['status'] = 'payment_ko'
         return "Operation Cancelled"
     
     def do_validate(self):
         ""
+        self.__cart__['status'] = 'payment_ok'
+        self.__cart__['valid_payment'] = self.id
+        self.__cart_.save()
         return "Operation Validated"
         
         
