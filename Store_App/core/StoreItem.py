@@ -10,6 +10,10 @@ Created on 13 janv. 2010
 
 @author: nico
 '''
+
+__author__="Nicolas Karageuzian"
+__contributors__ = []
+
 import sys
 import KaraCos
 _ = KaraCos._
@@ -23,7 +27,7 @@ class StoreItem(KaraCos.Db.Resource):
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
         assert isinstance(data,dict)
-        assert isinstance(parent,KaraCos.Db.Store)
+        assert isinstance(parent,KaraCos.Db.StoreParent)
         assert isinstance(parent.__domain__,KaraCos.Db.MDomain)
         # assert owner.get_auth_id()
         if 'WebType' not in data:
@@ -34,9 +38,9 @@ class StoreItem(KaraCos.Db.Resource):
 
 
     def __init__(self,parent=None,base=None,data=None,domain=None):
-        assert isinstance(parent,KaraCos.Db.Store)        
+        assert isinstance(parent,KaraCos.Db.StoreParent)        
         KaraCos.Db.Resource.__init__(self,parent=parent,base=base,data=data)
-        self.__store__ = parent
+        self.__store__ = parent.__store__
     
     
     def _edit_storeitem_form(self):

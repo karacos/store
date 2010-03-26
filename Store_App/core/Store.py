@@ -3,6 +3,10 @@ Created on 13 janv. 2010
 
 @author: nico
 '''
+
+__author__="Nicolas Karageuzian"
+__contributors__ = []
+
 from uuid import uuid4
 import sys
 import cherrypy
@@ -10,14 +14,14 @@ import KaraCos
 _ = KaraCos._
 fields = KaraCos._Rpc.DynForm.fields
 
-class Store(KaraCos.Db.WebNode):
+class Store(KaraCos.Db.StoreParent):
     '''
     Basic resource
     '''
 
 
     def __init__(self,parent=None,base=None,data=None):
-        KaraCos.Db.WebNode.__init__(self,parent=parent,base=base,data=data)
+        KaraCos.Db.StoreParent.__init__(self,parent=parent,base=base,data=data)
     
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
@@ -135,23 +139,6 @@ class Store(KaraCos.Db.WebNode):
         template = self.__domain__.lookup.get_template('/default/system')
         return template.render(instance=self,result=result)
         
-    @KaraCos._Db.isaction
-    def create_storeitem(self,*args,**kw):
-        assert 'price' in kw
-        kw['price'] = float(kw['price'])
-        assert 'tax' in kw
-        kw['tax'] = float(kw['tax'])
-        assert 'shipping' in kw
-        kw['shipping'] = float(kw['shipping'])
-        self._create_child_node(data=kw,type='StoreItem')
-    
-    create_storeitem.form = {'title': _("Creer un produit"),
-         'submit': _('Creer'),
-         'fields': [{'name':'name', 'title':'Reference','dataType': 'TEXT'},
-                 {'name':'description', 'title':'Description','dataType': 'TEXT', 'formType': 'textarea'},
-                 {'name':'price', 'title':'Prix Hors Taxes','dataType': 'TEXT'},
-                 {'name':'tax', 'title':'Valeur de taxe','dataType': 'TEXT'},
-                 {'name':'shipping', 'title':'Frais de port','dataType': 'TEXT'},
-                 ] }
+
         
         
