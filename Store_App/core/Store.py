@@ -117,11 +117,27 @@ class Store(KaraCos.Db.StoreParent):
         return payment.do_forward()
         
     
+    def _validate_cart_form(self):
+        return {'title': _("Valider le panier"),
+         'submit': _('Valider'),
+         'fields': [{'name':'name', 'title':'Reference','dataType': 'HIDDEN', 'value': self['name']},
+                 {'name':'description', 'title':'Description','dataType': 'TEXT', 'formType': 'textarea', 'value': self['description']},
+                 {'name':'price', 'title':'Prix Hors Taxes','dataType': 'TEXT', 'value': self['price']},
+                 {'name':'tax', 'title':'Valeur taxe (% du prix)','dataType': 'TEXT', 'value': self['tax']},
+                 {'name':'shipping', 'title':'Frais de port','dataType': 'TEXT', 'value': self['shipping']},
+                 ] }
+    
     @KaraCos._Db.isaction
-    def validate_cart(self):
+    def validate_cart(self,*args,**kwds):
         """
         Check for valid user, create user if required
         """
+        #assert cart_id in kw, "Parameter not found, cart_id"
+        cart = self.get_open_cart_for_user()
+        if not self.__domain__.is_user_authenticated():
+            raise KaraCos._Core.exception.WebAuthRequired("auth required","/%s?method=validate_cart"%self.get_relative_uri(),self.__domain__)
+        assert False, "incomplete method"
+        
         
     @KaraCos.expose
     def pay_callback(self,*args,**kwds):

@@ -13,7 +13,6 @@ class StoreFolder(KaraCos.Db.StoreParent):
     Container for Store items
     '''
 
-
     def __init__(self,parent=None,base=None,data=None):
         KaraCos.Db.StoreParent.__init__(self,parent=parent,base=base,data=data)
     
@@ -24,4 +23,5 @@ class StoreFolder(KaraCos.Db.StoreParent):
         if 'WebType' not in data:
             data['WebType'] = 'StoreFolder'
         return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
+  
   
