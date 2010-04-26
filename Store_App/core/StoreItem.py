@@ -90,4 +90,10 @@ class StoreItem(KaraCos.Db.Resource):
         
     @KaraCos._Db.isaction
     def add_media(self,*args,**kw):
-        ""
+        """
+        """
+    
+    def sell(self):
+        """
+        When item is sold
+        """
