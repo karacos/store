@@ -22,19 +22,7 @@ fields = KaraCos._Rpc.DynForm.fields
 class StoreItem(KaraCos.Db.Resource):
     '''
     Basic resource
-    '''
-
-    @staticmethod
-    def create(parent=None, base=None,data=None,owner=None):
-        assert isinstance(data,dict)
-        assert isinstance(parent,KaraCos.Db.StoreParent)
-        assert isinstance(parent.__domain__,KaraCos.Db.MDomain)
-        # assert owner.get_auth_id()
-        if 'WebType' not in data:
-            data['WebType'] = 'StoreItem'
-        
-        return KaraCos.Db.Resource.create(parent=parent,base=base,data=data,owner=owner)
-    
+    '''    
 
 
     def __init__(self,parent=None,base=None,data=None,domain=None):
@@ -44,10 +32,13 @@ class StoreItem(KaraCos.Db.Resource):
     
     
     def _edit_storeitem_form(self):
+        if 'description' not in self:
+            self['description'] = ''
+            self.save()
         return {'title': _("Modifier le produit"),
          'submit': _('Modifier'),
          'fields': [{'name':'name', 'title':'Reference','dataType': 'TEXT', 'value': self['name']},
-                 {'name':'description', 'title':'Description','dataType': 'TEXT', 'formType': 'textarea', 'value': self['description']},
+                 {'name':'description', 'title':'Description','dataType': 'TEXT', 'formType': 'WYSIWYG', 'value': self['description']},
                  {'name':'price', 'title':'Prix Hors Taxes','dataType': 'TEXT', 'value': self['price']},
                  {'name':'tax', 'title':'Valeur taxe (% du prix)','dataType': 'TEXT', 'value': self['tax']},
                  {'name':'shipping', 'title':'Frais de port','dataType': 'TEXT', 'value': self['shipping']},
@@ -97,3 +88,4 @@ class StoreItem(KaraCos.Db.Resource):
         """
         When item is sold
         """
+        assert False, "Method sell has to be implemented in subclass"

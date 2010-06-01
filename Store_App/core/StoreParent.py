@@ -31,17 +31,22 @@ class StoreParent(KaraCos.Db.WebNode):
     
     @KaraCos._Db.isaction
     def create_storeitem(self,*args,**kw):
+        assert 'type' in kw
+        assert kw['type'] == 'Soft' or kw['type'] == 'Hard'
+        type = '%sItem' % kw['type']
+        del kw['type']
         assert 'price' in kw
         kw['price'] = float(kw['price'])
         assert 'tax' in kw
         kw['tax'] = float(kw['tax'])
         assert 'shipping' in kw
         kw['shipping'] = float(kw['shipping'])
-        self._create_child_node(data=kw,type='StoreItem')
+        self._create_child_node(data=kw,type=type)
     
     create_storeitem.form = {'title': _("Creer un produit"),
          'submit': _('Creer'),
          'fields': [{'name':'name', 'title':'Reference','dataType': 'TEXT'},
+                 {'name':'type', 'title':'Type (Soft, Hard)','dataType': 'TEXT'},
                  {'name':'description', 'title':'Description','dataType': 'TEXT', 'formType': 'textarea'},
                  {'name':'price', 'title':'Prix Hors Taxes','dataType': 'TEXT'},
                  {'name':'tax', 'title':'Valeur de taxe','dataType': 'TEXT'},
