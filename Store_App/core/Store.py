@@ -110,7 +110,7 @@ class Store(KaraCos.Db.StoreParent):
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
          'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
-                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'textarea'},
+                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
                  {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT'},
@@ -126,7 +126,7 @@ class Store(KaraCos.Db.StoreParent):
                      'submit': _('Utiliser'),
                      'fields': [
                  {'name':'label', 'title':'Libelle','dataType': 'TEXT', 'value': adr},
-                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'textarea', 'value':user['adrs'][adr]['street-address']},
+                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA', 'value':user['adrs'][adr]['street-address']},
                  {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT', 'value':user['adrs'][adr]['postal-code']},
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT', 'value':user['adrs'][adr]['locality']},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT', 'value':user['adrs'][adr]['region']},
@@ -187,6 +187,7 @@ class Store(KaraCos.Db.StoreParent):
         """
         
         """
+        self.log.info("START validate_cart")
         #assert cart_id in kw, "Parameter not found, cart_id"
         cart = None
         if 'cart_id' in cherrypy.session:
@@ -225,7 +226,7 @@ class Store(KaraCos.Db.StoreParent):
                 confform = {}
                 confform = {'title': _("Service %s" % svc_conf),
                      'submit': _('Utiliser'),
-                     'fields': [
+                     'fields': [{'name':'svc_name', 'title':'Nom du service','dataType': 'HIDDEN','value':self['conf_services'][svc_conf]},
                              ] }
                 
                 forms.append(confform)
