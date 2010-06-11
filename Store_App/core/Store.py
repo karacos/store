@@ -225,10 +225,12 @@ class Store(KaraCos.Db.StoreParent):
             for svc_conf in self['conf_services'].keys() :
                 confform = {}
                 confform = {'title': _("Service %s" % svc_conf),
-                     'submit': _('Utiliser'),
-                     'fields': [{'name':'svc_name', 'title':'Nom du service','dataType': 'HIDDEN','value':self['conf_services'][svc_conf]},
+                     'submit': _('Modifier'),
+                     'fields': [{'name':'svc_name', 'title':'Nom du service','dataType': 'HIDDEN','value':svc_conf},
                              ] }
-                
+                if svc_conf == 'paypal_express':
+                    self.set_paypal_express_conf()
+                    self.set_paypal_express_form(confform)
                 forms.append(confform)
             forms.append(form)
             result = forms
@@ -236,11 +238,29 @@ class Store(KaraCos.Db.StoreParent):
             result = form
         return result
     
+    def set_paypal_express_form(self,form):
+        for key in self['conf_services']['paypal_express'].keys():
+            field = {'name' : key,
+                     'title': key,
+                    'value' : self['conf_services']['paypal_express'][key],
+                    'dataType': 'TEXT'
+                     }
+            form['fields'].append(field)
+        
+    def set_paypal_express_conf(self):
+        default = KaraCos.Apps['store'].providers.paypal._default_conf
+        for key in default.keys():
+            if key not in self['conf_services']['paypal_express']:
+                self['conf_services']['paypal_express'][key] = default[key]
+        self.save()
+        
+        
     @KaraCos._Db.isaction
     def set_services(self,*args,**kw):
         """
         """
         assert 'svc_name' in kw
+        assert kw['svc_name'] in ['paypal_express'], "Incorrect service Name"
         if 'conf_services' not in self:
             self['conf_services'] = { }
         if kw['svc_name'] not in self['conf_services']:
