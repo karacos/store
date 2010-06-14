@@ -88,7 +88,11 @@ class Service(dict):
             pass
         self.__conf__['HTTP_TIMEOUT'] = http_timeout    
         socket.setdefaulttimeout(http_timeout)
-    
+        if isinstance(self.__conf__['USE_PROXY'],basestring):
+            if self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
+                self.__conf__["USE_PROXY"] = True
+            else:
+                self.__conf__["USE_PROXY"] = False
         urlvalues = {
             'METHOD': method,
             'VERSION': self.__conf__['VERSION']
