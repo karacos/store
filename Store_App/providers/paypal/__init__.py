@@ -119,7 +119,7 @@ class Service(dict):
 
         if self.__conf__["USE_PROXY"] == True or  self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
             #proxy_support = urllib2.ProxyHandler({"http" : "http://ahad-haam:3128"})
-            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'https')
+            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
         response = Response(urllib2.urlopen(req).read(),self.__conf__)
     
         if not response.success:
