@@ -261,10 +261,13 @@ class Store(KaraCos.Db.StoreParent):
         """
         assert 'svc_name' in kw
         assert kw['svc_name'] in ['paypal_express'], "Incorrect service Name"
+        svc_name = kw['svc_name']
+        del kw['svc_name']
         if 'conf_services' not in self:
-            self['conf_services'] = { }
-        if kw['svc_name'] not in self['conf_services']:
-            self['conf_services'][kw['svc_name']] = {}
+            self['conf_services'] = {svc_name: kw }
+        else :
+            self['conf_services'][svc_name] = kw
+        
         self.save()
     
     set_services.get_form = _set_services_form
