@@ -86,7 +86,7 @@ class Service(dict):
             http_timeout = float(self.__conf__['HTTP_TIMEOUT'])
         except:
             pass
-        self.__conf__['HTTP_TIMEOUT'] = http_timeout
+        self.__conf__['HTTP_TIMEOUT'] = http_timeout    
         socket.setdefaulttimeout(http_timeout)
     
         urlvalues = {
@@ -119,7 +119,7 @@ class Service(dict):
 
         if self.__conf__["USE_PROXY"] == True or  self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
             #proxy_support = urllib2.ProxyHandler({"http" : "http://ahad-haam:3128"})
-            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
+            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'https')
         response = Response(urllib2.urlopen(req).read(),self.__conf__)
     
         if not response.success:
