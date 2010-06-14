@@ -22,7 +22,7 @@ _default_conf = {
                 # TODO: implement use of API via http proxy
                 'USE_PROXY': False,
                 'PROXY_HOST': "127.0.0.1",
-                'PROXY_PORT': "808",
+                'PROXY_PORT': "8080",
                 # in seconds
                 'HTTP_TIMEOUT': 15,
                 'PAYPAL_URL': "https://www.sandbox.paypal.com/webscr?cmd=_express-checkout&token=",
@@ -81,7 +81,12 @@ class Service(dict):
     
         ``kwargs`` will be a hash of
         """
-        socket.setdefaulttimeout(self.__conf__['HTTP_TIMEOUT'])
+        http_timeout = 15
+        try:
+            http_timeout = float(self.__conf__['HTTP_TIMEOUT'])
+        except:
+            pass
+        socket.setdefaulttimeout(http_timeout)
     
         urlvalues = {
             'METHOD': method,
@@ -107,9 +112,13 @@ class Service(dict):
         # print(headers)
         for k,v in kwargs.iteritems():
             urlvalues[k.upper()] = v
-    
+
         data = urllib.urlencode(urlvalues)
         req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)
+
+        if self.__conf__["USE_PROXY"] != False or  self.__conf__["USE_PROXY"] != "False" or  self.__conf__["USE_PROXY"] != "false":
+            #proxy_support = urllib2.ProxyHandler({"http" : "http://ahad-haam:3128"})
+            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
         response = Response(urllib2.urlopen(req).read(),self.__conf__)
     
         if not response.success:
