@@ -86,6 +86,7 @@ class Service(dict):
             http_timeout = float(self.__conf__['HTTP_TIMEOUT'])
         except:
             pass
+        self.__conf__['HTTP_TIMEOUT'] = http_timeout
         socket.setdefaulttimeout(http_timeout)
     
         urlvalues = {
