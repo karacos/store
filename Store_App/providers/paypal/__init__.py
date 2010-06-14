@@ -117,9 +117,9 @@ class Service(dict):
         data = urllib.urlencode(urlvalues)
         req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)
 
-        if self.__conf__["USE_PROXY"] == True or  self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
+        #if self.__conf__["USE_PROXY"] == True or  self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
             #proxy_support = urllib2.ProxyHandler({"http" : "http://ahad-haam:3128"})
-            req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
+        #    req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
         response = Response(urllib2.urlopen(req).read(),self.__conf__)
     
         if not response.success:
