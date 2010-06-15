@@ -68,7 +68,8 @@ class Service(dict):
         self.__conf__.update(args[0])
                              
         
-    
+    def update_conf(self,conf):
+        self.__conf__.update(conf)
     
     def call(self,method, **kwargs):
         """
@@ -119,13 +120,27 @@ class Service(dict):
             urlvalues[k.upper()] = v
 
         data = urllib.urlencode(urlvalues)
-        req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)
-
-        #if self.__conf__["USE_PROXY"] == True or  self.__conf__["USE_PROXY"] == "True" or  self.__conf__["USE_PROXY"] == "true":
-            #proxy_support = urllib2.ProxyHandler({"http" : "http://ahad-haam:3128"})
-        #    req.set_proxy("%s:%s" %(self.__conf__['PROXY_HOST'],self.__conf__['PROXY_PORT']), 'http')
-        response = Response(urllib2.urlopen(req).read(),self.__conf__)
-    
+        
+        
+        (protocol,resource) = urllib.splittype(self.__conf__['API_ENDPOINT'])
+        (hostport,path) = urllib.splithost(resource)
+        connexion = None
+        if protocol == "http":
+            (host,port) = urllib.splitnport(hostport, 80)
+            import httplib
+            connexion = httplib.HTTPConnection(host, port, timeout=self.__conf__['HTTP_TIMEOUT'])
+        else :
+            (host,port) = urllib.splitnport(hostport, 443)
+            connexion = KaraCos._Core.net.HTTPSConnection(host, port)
+        if self.__conf__["USE_PROXY"]:
+            connexion.http_proxy = [self.__conf__["PROXY_HOST"],
+                                    self.__conf__["PROXY_PORT"]]
+        connexion.connect()
+        connexion.request("POST", resource, body=data, headers=headers)
+        "req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)"
+        "response = Response(urllib2.urlopen(req).read(),self.__conf__)"
+        response = connexion.getresponse()
+        
         if not response.success:
             raise ApiError(response)
         return response
