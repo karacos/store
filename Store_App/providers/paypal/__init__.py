@@ -128,10 +128,10 @@ class Service(dict):
         if protocol == "http":
             (host,port) = urllib.splitnport(hostport, 80)
             import httplib
-            connexion = httplib.HTTPConnection(host, port, timeout=self.__conf__['HTTP_TIMEOUT'])
+            connexion = KaraCos._Core.net.http.HTTPConnection(host, port, timeout=self.__conf__['HTTP_TIMEOUT'])
         else :
             (host,port) = urllib.splitnport(hostport, 443)
-            connexion = KaraCos._Core.net.HTTPSConnection(host, port)
+            connexion = KaraCos._Core.net.http.HTTPSConnection(host, port)
         if self.__conf__["USE_PROXY"]:
             connexion.http_proxy = [self.__conf__["PROXY_HOST"],
                                     self.__conf__["PROXY_PORT"]]
