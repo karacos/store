@@ -120,26 +120,29 @@ class Service(dict):
             urlvalues[k.upper()] = v
 
         data = urllib.urlencode(urlvalues)
-        
-        
-        (protocol,resource) = urllib.splittype(self.__conf__['API_ENDPOINT'])
-        (hostport,path) = urllib.splithost(resource)
-        connexion = None
-        if protocol == "http":
-            (host,port) = urllib.splitnport(hostport, 80)
-            import httplib
-            connexion = KaraCos._Core.net.http.HTTPConnection(host, port, timeout=self.__conf__['HTTP_TIMEOUT'])
-        else :
-            (host,port) = urllib.splitnport(hostport, 443)
-            connexion = KaraCos._Core.net.http.HTTPSConnection(host, port)
+        handler = None
         if self.__conf__["USE_PROXY"]:
-            connexion.http_proxy = [self.__conf__["PROXY_HOST"],
-                                    self.__conf__["PROXY_PORT"]]
-        connexion.connect()
-        connexion.request("POST", resource, body=data, headers=headers)
-        "req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)"
-        "response = Response(urllib2.urlopen(req).read(),self.__conf__)"
-        response = connexion.getresponse()
+            handler = KaraCos._Core.net.http.UrlHandler(http_timeout=self.__conf__['HTTP_TIMEOUT'],proxy_host=self.__conf__["PROXY_HOST"],proxy_port=self.__conf__["PROXY_PORT"])
+        else:
+            handler = KaraCos._Core.net.http.UrlHandler(http_timeout=self.__conf__['HTTP_TIMEOUT'])
+        #(protocol,resource) = urllib.splittype(self.__conf__['API_ENDPOINT'])
+        #(hostport,path) = urllib.splithost(resource)
+        #connexion = None
+        #if protocol == "http":
+        #    (host,port) = urllib.splitnport(hostport, 80)
+        #    import httplib
+        #    connexion = KaraCos._Core.net.http.HTTPConnection(host, port, timeout=self.__conf__['HTTP_TIMEOUT'])
+        #else :
+        #    (host,port) = urllib.splitnport(hostport, 443)
+        #    connexion = KaraCos._Core.net.http.HTTPSConnection(host, port)
+        #if self.__conf__["USE_PROXY"]:
+        #    connexion.http_proxy = [self.__conf__["PROXY_HOST"],
+        #                            self.__conf__["PROXY_PORT"]]
+        #connexion.connect()
+        #connexion.request("POST", resource, body=data, headers=headers)
+        #req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)
+        #response = Response(urllib2.urlopen(req).read(),self.__conf__)
+        response = handler.processRequest("POST",self.__conf__['API_ENDPOINT'],data=data, headers=headers)
         
         if not response.success:
             raise ApiError(response)
