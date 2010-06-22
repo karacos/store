@@ -142,10 +142,10 @@ class Service(dict):
         #connexion.request("POST", resource, body=data, headers=headers)
         #req = urllib2.Request(self.__conf__['API_ENDPOINT'], data, headers)
         #response = Response(urllib2.urlopen(req).read(),self.__conf__)
-        response = handler.processRequest("POST",self.__conf__['API_ENDPOINT'],data=data, headers=headers)
-        
-        if not response.success:
+        httpresponse = handler.processRequest("POST",self.__conf__['API_ENDPOINT'],data=data, headers=headers)
+        if not httpresponse.status == 200:
             raise ApiError(response)
+        response = Response(httpresponse.read(),self.__conf__)
         return response
     
         

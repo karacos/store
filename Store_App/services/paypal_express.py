@@ -45,7 +45,7 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
             
         
         response = self.call('SetExpressCheckout', **kw)
-        KaraCos._Db.log.info("Service PAYPAL response : type: %s" % type(response.raw))
+        KaraCos._Db.log.info("Service PAYPAL response : %s" % response.raw)
         payment['service']['SetExpressCheckout'] = response.raw
         payment.save()
         redirect_url = "%s%s&AMT=%s&CURRENCYCODE=EUR" % (self.__conf__['PAYPAL_URL'],
