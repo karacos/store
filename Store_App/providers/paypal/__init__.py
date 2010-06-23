@@ -144,7 +144,7 @@ class Service(dict):
         #response = Response(urllib2.urlopen(req).read(),self.__conf__)
         httpresponse = handler.processRequest("POST",self.__conf__['API_ENDPOINT'],data=data, headers=headers)
         if not httpresponse.status == 200:
-            raise ApiError(response)
+            raise ApiError(httpresponse)
         response = Response(httpresponse.read(),self.__conf__)
         return response
     

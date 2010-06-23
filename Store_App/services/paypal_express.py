@@ -23,10 +23,10 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
         bill = cart._get_bill_data()
         kw = {'amt': "%.2f" % bill['net_total'],
               'ITEMAMT':"%.2f" % bill['net_total'],
-              'returnurl':"http://%s%spay_callback/%s/return" % (cart.__store__.__domain__['fqdn'],
+              'returnurl':"http://%s%s/pay_callback/%s/return" % (cart.__store__.__domain__['fqdn'],
                                                                    cart.__store__._get_action_url(),
                                                                    payment.id),
-              'cancelurl':"http://%s%spay_callback/%s/cancel" % (cart.__store__.__domain__['fqdn'],
+              'cancelurl':"http://%s%s/pay_callback/%s/cancel" % (cart.__store__.__domain__['fqdn'],
                                                                    cart.__store__._get_action_url(),
                                                                    payment.id),
               'CURRENCYCODE': 'EUR',
