@@ -48,6 +48,8 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
         KaraCos._Db.log.info("Service PAYPAL response : %s" % response.raw)
         payment['service']['SetExpressCheckout'] = response.raw
         payment.save()
+        if payment['service']['SetExpressCheckout']['ACK'][0] == "Failure":
+            raise cherrypy.HTTPRedirect('/', 301)
         redirect_url = "%s%s&AMT=%s&CURRENCYCODE=EUR" % (self.__conf__['PAYPAL_URL'],
                                  payment['service']['SetExpressCheckout']['TOKEN'][0],
                                  "%.2f" % bill['net_total'])
@@ -61,7 +63,7 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
         kw = {'TOKEN': payment['service']['SetExpressCheckout']['TOKEN'][0]
               }
         response = self.call('GetExpressCheckoutDetails', **kw)
-        payment['status']['GetExpressCheckoutDetails'] = response.raw
+        payment['service']['GetExpressCheckoutDetails'] = response.raw
         payment.save()
         
         if action == 'cancel':

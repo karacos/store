@@ -16,7 +16,7 @@ class Payment(KaraCos.Db.Node):
         KaraCos.Db.Node.__init__(self,parent=parent,base=base,data=data)
         self.__cart__ = parent
         self.__store__ = parent.__store__
-        self._service = self.__store__._get_service(self['service'])
+        #self._service = self.__store__._get_service(self['service'])
 
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
@@ -34,14 +34,14 @@ class Payment(KaraCos.Db.Node):
         """
         Creates payment for service
         """
-        return self._service.do_forward(self.__cart__,self)
+        return self.__store__._get_service(self['service']['name']).do_forward(self.__cart__,self)
     
     @KaraCos._Db.isaction
     def do_callback(self,action,*args,**kw):
         """
         """
         self.log.info("do_callback : -- %s -- %s --" % (args,kw))
-        result = self._service.do_callback(self,action,*args,**kw)
+        result = self.__store__._get_service(self['service']['name']).do_callback(self,action,*args,**kw)
         
         return result
 
@@ -56,7 +56,7 @@ class Payment(KaraCos.Db.Node):
         ""
         self.__cart__['status'] = 'payment_ok'
         self.__cart__['valid_payment'] = self.id
-        self.__cart_.save()
+        self.__cart__.save()
         return "Operation Validated"
         
         

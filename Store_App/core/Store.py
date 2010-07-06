@@ -287,6 +287,7 @@ class Store(KaraCos.Db.StoreParent):
         return self['conf_services'][service]
     
     def _get_service(self,service):
+        self.log.info("_get_service : -- %s --" % (service))
         if '__services__' not in dir(self):
             self.__services__ = dict()
         if service not in self.__services__:
@@ -313,14 +314,15 @@ class Store(KaraCos.Db.StoreParent):
         """
         url handler for payment services callback
         """
-        arg_list,kw = args
-        payment_id,action = arg_list
+        #arg_list,kw = args
+        payment_id,action = args
         self.log.info("pay_callback : -- %s -- %s --" % (payment_id,action))
         user = self.__domain__._get_person_data()
-        cart = self._get_process_pay_cart_for_payment(payment)
-        payment = cart.get_child_by_id(payment_id)
-        self.log.info("pay_callback : -- %s --" % (payment))
-        result = payment.do_callback(action,*(),**kw)
+        cart = self.get_open_cart_for_user()
+        self.log.info("pay_callback CART : -- %s --" % (cart))
+        payment = cart.get_child_by_id(str(payment_id))
+        self.log.info("pay_callback ID/PAYMENT : -- %s -- %s --" % (payment_id,payment))
+        result = payment.do_callback(action,*(),**kwds)
         template = self.__domain__.lookup.get_template('/default/system')
         return template.render(instance=self,result=result)
         
