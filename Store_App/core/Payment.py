@@ -41,7 +41,7 @@ class Payment(KaraCos.Db.Node):
         """
         """
         self.log.info("do_callback : -- %s -- %s --" % (args,kw))
-        result = self.__store__._get_service(self['service']).do_callback(self,action,*args,**kw)
+        result = self.__store__._get_service(self['service']['name']).do_callback(self,action,*args,**kw)
         
         return result
 
