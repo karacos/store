@@ -34,14 +34,14 @@ class Payment(KaraCos.Db.Node):
         """
         Creates payment for service
         """
-        return self.__store__._get_service(self['service']['name']).do_forward(self.__cart__,self)
+        return self.__store__._get_service(self['service']).do_forward(self.__cart__,self)
     
     @KaraCos._Db.isaction
     def do_callback(self,action,*args,**kw):
         """
         """
         self.log.info("do_callback : -- %s -- %s --" % (args,kw))
-        result = self.__store__._get_service(self['service']['name']).do_callback(self,action,*args,**kw)
+        result = self.__store__._get_service(self['service']).do_callback(self,action,*args,**kw)
         
         return result
 
