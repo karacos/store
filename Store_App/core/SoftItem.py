@@ -14,7 +14,7 @@ fields = KaraCos._Rpc.DynForm.fields
 
 class SoftItem(KaraCos.Db.StoreItem):
     '''
-    Container for Store items
+    Item with no shipping
     '''
 
     def __init__(self,parent=None,base=None,data=None):
@@ -23,7 +23,7 @@ class SoftItem(KaraCos.Db.StoreItem):
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
         assert isinstance(data,dict)
-        assert isinstance(parent,KaraCos.Db.StoreItem)
+        assert isinstance(parent,KaraCos.Db.StoreParent)
         if 'WebType' not in data:
             data['WebType'] = 'SoftItem'
         return KaraCos.Db.StoreItem.create(parent=parent,base=base,data=data,owner=owner)

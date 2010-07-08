@@ -99,13 +99,19 @@ class ShoppingCart(KaraCos.Db.Node):
     
     def _create_payment(self,service):
         """
-        service : name of the service : 'papal'
+        service : name of the service : 'papal_express'
         """
         assert not self._has_active_payment()
         name = "%s" % uuid4().hex
-        data = {'name':name,'service':service['_name'] ,'status':'active'}
+        data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
         self['status'] = 'process_pay'
         return self.__childrens__[name]
-        
+    
+    def _do_payment_ok(self,payment):
+        self['status'] = 'payment_ok'
+        self['valid_payment'] = payment.id
+        self.save()
+        for item_key in self['items'].keys() :
+            self.db[item_key]._do_cart_processing(self)
     

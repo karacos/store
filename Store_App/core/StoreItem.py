@@ -23,7 +23,12 @@ class StoreItem(KaraCos.Db.Resource):
     '''
     Basic resource
     '''    
-
+    @staticmethod
+    def create(parent=None, base=None,data=None,owner=None):
+        assert isinstance(data,dict)
+        assert isinstance(parent,KaraCos.Db.StoreParent)
+        assert 'WebType' in data, "Could not instanciate StoreItem"
+        return KaraCos.Db.Resource.create(parent=parent,base=base,data=data,owner=owner)
 
     def __init__(self,parent=None,base=None,data=None,domain=None):
         assert isinstance(parent,KaraCos.Db.StoreParent)        
@@ -84,8 +89,8 @@ class StoreItem(KaraCos.Db.Resource):
         """
         """
     
-    def sell(self):
+    def _do_cart_processing(self,cart):
         """
-        When item is sold
+        When item is sold and payment validated
         """
         assert False, "Method sell has to be implemented in subclass"
