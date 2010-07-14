@@ -26,7 +26,7 @@ class Payment(KaraCos.Db.Node):
         assert isinstance(data,dict)
         if 'type' not in data:
             data['type'] = 'Payment'
-        result = KaraCos.Db.Node.create(parent=parent,base=base,data=data,owner=owner)
+        result = KaraCos.Db.Node.create(parent=parent,base=False,data=data,owner=owner)
         return result
 
     @KaraCos._Db.isaction
@@ -34,7 +34,7 @@ class Payment(KaraCos.Db.Node):
         """
         Creates payment for service
         """
-        return self.__store__._get_service(self['service']).do_forward(self.__cart__,self)
+        return self.__store__._get_service(self['service']['name']).do_forward(self.__cart__,self)
     
     @KaraCos._Db.isaction
     def do_callback(self,action,*args,**kw):
@@ -53,10 +53,10 @@ class Payment(KaraCos.Db.Node):
         return "Operation Cancelled"
     
     def do_validate(self):
-        ""
-        self.['status'] = 'validated'
+        "When payment is validated, service impl must calls do_validate()"
+        self['status'] = 'validated'
         self.save()
-        self.__cart__.do_payment_validated(self)
+        self.__cart__._do_payment_validated(self)
         return "Operation Validated"
         
         

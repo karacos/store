@@ -204,12 +204,7 @@ class Store(KaraCos.Db.StoreParent):
                 self.cancel_shopping_cart()
             cart['customer_id'] = user.id
             cart.save()
-        if 'shipping_adr' not in cart:
-            raise KaraCos._Core.exception.DataRequired("Validate shipping","","/%s?method=validate_cart"%self.get_relative_uri(),self,self.add_cart_shipping)        
-        if 'billing_adr' not in cart:
-            raise KaraCos._Core.exception.DataRequired("Validate billing","","/%s?method=validate_cart"%self.get_relative_uri(),self,self.add_cart_billing)
-        cart['validated'] = True
-        cart.save()
+        cart._do_self_validation()
         return cart
     
     
