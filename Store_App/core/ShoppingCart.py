@@ -107,5 +107,12 @@ class ShoppingCart(KaraCos.Db.Node):
         self._create_child_node(data=data,type='Payment')
         self['status'] = 'process_pay'
         return self.__childrens__[name]
-        
+    
+    def do_payment_validated(self,payment):
+        self['status'] = 'payment_ok'
+        self['valid_payment'] = self.id
+        self.save()
+        for itemid in self['items'].keys():
+            item = self.__store__.db[itemid]
+            item.sell()
     

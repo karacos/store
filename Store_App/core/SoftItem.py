@@ -14,7 +14,8 @@ fields = KaraCos._Rpc.DynForm.fields
 
 class SoftItem(KaraCos.Db.StoreItem):
     '''
-    Container for Store items
+    Container for soft Store items (like access to a file or piece of software, or site feature)
+    is still abstract
     '''
 
     def __init__(self,parent=None,base=None,data=None):
@@ -27,3 +28,4 @@ class SoftItem(KaraCos.Db.StoreItem):
         if 'WebType' not in data:
             data['WebType'] = 'SoftItem'
         return KaraCos.Db.StoreItem.create(parent=parent,base=base,data=data,owner=owner)
+    

@@ -43,15 +43,15 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
             
             i+=1
             
-        
+        payment['service']['SetExpressCheckout'] = {'request':kw}
         response = self.call('SetExpressCheckout', **kw)
         KaraCos._Db.log.info("Service PAYPAL response : %s" % response.raw)
-        payment['service']['SetExpressCheckout'] = response.raw
+        payment['service']['SetExpressCheckout']['response'] = response.raw
         payment.save()
-        if payment['service']['SetExpressCheckout']['ACK'][0] == "Failure":
+        if payment['service']['SetExpressCheckout']['response']['ACK'][0] == "Failure":
             raise cherrypy.HTTPRedirect('/', 301)
         redirect_url = "%s%s&AMT=%s&CURRENCYCODE=EUR" % (self.__conf__['PAYPAL_URL'],
-                                 payment['service']['SetExpressCheckout']['TOKEN'][0],
+                                 payment['service']['SetExpressCheckout']['response']['TOKEN'][0],
                                  "%.2f" % bill['net_total'])
         raise cherrypy.HTTPRedirect(redirect_url, 301)
 
@@ -60,22 +60,24 @@ class Service(KaraCos.Apps['store'].providers.paypal.Service):
     def do_callback(self,payment,action,*args,**kw):
         """
         """
-        kw = {'TOKEN': payment['service']['SetExpressCheckout']['TOKEN'][0]
+        kw = {'TOKEN': payment['service']['SetExpressCheckout']['response']['TOKEN'][0]
               }
+        payment['service']['GetExpressCheckoutDetails'] = {'request': kw}
         response = self.call('GetExpressCheckoutDetails', **kw)
-        payment['service']['GetExpressCheckoutDetails'] = response.raw
+        payment['service']['GetExpressCheckoutDetails']['response'] = response.raw
         payment.save()
         
         if action == 'cancel':
             return payment.do_cancel()
         if action == 'return':
-            kw = {'TOKEN': payment['service']['SetExpressCheckout']['TOKEN'][0],
-                  'PAYERID':payment['service']['GetExpressCheckoutDetails']['PAYERID'][0],
-                  'AMT':payment['service']['GetExpressCheckoutDetails']['AMT'][0],
+            kw = {'TOKEN': payment['service']['SetExpressCheckout']['response']['TOKEN'][0],
+                  'PAYERID':payment['service']['GetExpressCheckoutDetails']['response']['PAYERID'][0],
+                  'AMT':payment['service']['GetExpressCheckoutDetails']['response']['AMT'][0],
                   'CURRENCYCODE':'EUR',
                   'PAYMENTACTION':'Sale'
                   }
+            payment['service']['DoExpressCheckoutPayment'] = {'request': kw}
             response = self.call('DoExpressCheckoutPayment', **kw)
-            payment['service']['DoExpressCheckoutPayment'] = response.raw
+            payment['service']['DoExpressCheckoutPayment']['response'] = response.raw
             payment.save()
             return payment.do_validate()

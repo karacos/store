@@ -54,9 +54,9 @@ class Payment(KaraCos.Db.Node):
     
     def do_validate(self):
         ""
-        self.__cart__['status'] = 'payment_ok'
-        self.__cart__['valid_payment'] = self.id
-        self.__cart__.save()
+        self.['status'] = 'validated'
+        self.save()
+        self.__cart__.do_payment_validated(self)
         return "Operation Validated"
         
         
