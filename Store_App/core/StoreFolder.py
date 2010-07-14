@@ -22,6 +22,6 @@ class StoreFolder(KaraCos.Db.StoreParent):
         assert isinstance(parent,KaraCos.Db.StoreParent)
         if 'WebType' not in data:
             data['WebType'] = 'StoreFolder'
-        return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
+        return KaraCos.Db.WebNode.create(parent=parent,base=False,data=data,owner=owner)
   
   

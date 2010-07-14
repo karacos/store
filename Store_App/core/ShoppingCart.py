@@ -27,7 +27,7 @@ class ShoppingCart(KaraCos.Db.Node):
         assert isinstance(data,dict)
         if 'type' not in data:
             data['type'] = 'ShoppingCart'
-        result = KaraCos.Db.Node.create(parent=parent,base=base,data=data,owner=owner)
+        result = KaraCos.Db.Node.create(parent=parent,base=False,data=data,owner=owner)
         return result
     
     def _add_item(self,*args,**kw):
@@ -67,6 +67,18 @@ class ShoppingCart(KaraCos.Db.Node):
             result['net_total'] = result['net_total'] + result['items'][item.key]['net_total']
         return result
     
+    def _do_self_validation(self):
+        """
+        Check if enough data in cart (regarding each item requirement)
+        """
+        if 'billing_adr' not in cart:
+            # Billing adress is required
+            raise KaraCos._Core.exception.DataRequired("Validate billing","","/%s?method=validate_cart"%self.__store__.get_relative_uri(),self.__store__,self.__store__.add_cart_billing)
+        for item_key in self['items'].keys() :
+            self.db[item_key]._do_cart_validation(self)
+        self['validated'] = True
+        self.save()
+    
     def _add_shipping_adress_(self,adress):
         ""
     def __get_active_payment__(self):
@@ -99,20 +111,19 @@ class ShoppingCart(KaraCos.Db.Node):
     
     def _create_payment(self,service):
         """
-        service : name of the service : 'papal'
+        service : name of the service : 'papal_express'
         """
         assert not self._has_active_payment()
         name = "%s" % uuid4().hex
-        data = {'name':name,'service':service['_name'] ,'status':'active'}
+        data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
         self['status'] = 'process_pay'
         return self.__childrens__[name]
     
-    def do_payment_validated(self,payment):
+    def _do_payment_validated(self,payment):
         self['status'] = 'payment_ok'
-        self['valid_payment'] = self.id
+        self['valid_payment'] = payment.id
         self.save()
-        for itemid in self['items'].keys():
-            item = self.__store__.db[itemid]
-            item.sell()
-    
+        for item_key in self['items'].keys() :
+            self.db[item_key]._do_cart_processing(self)
+        self.save()    
