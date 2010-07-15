@@ -100,3 +100,9 @@ class StoreItem(KaraCos.Db.Resource):
         When item is sold and payment validated
         """
         assert False, "Method _do_cart_processing has to be implemented in subclass"
+    
+    def _do_cart_cancel(self,cart):
+        """
+        When payment fails
+        """
+        assert False, "Method _do_cart_cancel has to be implemented in subclass"

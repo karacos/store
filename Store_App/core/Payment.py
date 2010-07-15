@@ -50,6 +50,7 @@ class Payment(KaraCos.Db.Node):
         self['status'] = 'canceled'
         self.parent['is_open'] = 'false'
         self.__cart__['status'] = 'payment_ko'
+        self.__cart__._do_payment_cancelled(self)
         return "Operation Cancelled"
     
     def do_validate(self):

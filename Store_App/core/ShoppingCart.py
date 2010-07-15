@@ -126,4 +126,9 @@ class ShoppingCart(KaraCos.Db.Node):
         self.save()
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_processing(self)
-        self.save()    
+        self.save()
+    
+    def _do_payment_cancelled(self,payment):
+        self['status'] = 'payment_ko'
+        for item_key in self['items'].keys() :
+            self.db[item_key]._do_cart_cancel(self)
