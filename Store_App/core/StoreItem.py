@@ -65,10 +65,18 @@ class StoreItem(KaraCos.Db.Resource):
     edit_storeitem.get_form = _edit_storeitem_form
     
     
+    def _do_add_validation(self,cart,number):
+        """
+        When item is added to cart, process custom validation (abstract)
+        """
+        assert False, "Method _do_add_validation has to be implemented in subclass"
+
+    
     @KaraCos._Db.isaction
     def add_to_cart(self,*args,**kw):
         "Add item to ShoppingCart, with optional quantity, default is 1"
         cart = self.__store__.get_open_cart_for_user()
+        
         kw['item'] = self
         if 'number' not in kw:
             kw['number'] = 1
@@ -77,6 +85,7 @@ class StoreItem(KaraCos.Db.Resource):
                 kw['number'] = 1
             else:
                 kw['number'] = int(kw['number'])
+        self._do_add_validation(cart,kw['number'])
         cart._add_item(*args,**kw)
         return cart
     add_to_cart.form = {'title': _("Ajouter au panier"),
