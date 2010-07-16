@@ -71,7 +71,7 @@ class ShoppingCart(KaraCos.Db.Node):
         """
         Check if enough data in cart (regarding each item requirement)
         """
-        if 'billing_adr' not in cart:
+        if 'billing_adr' not in self:
             # Billing adress is required
             raise KaraCos._Core.exception.DataRequired("Validate billing","","/%s?method=validate_cart"%self.__store__.get_relative_uri(),self.__store__,self.__store__.add_cart_billing)
         for item_key in self['items'].keys() :
