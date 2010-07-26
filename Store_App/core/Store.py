@@ -23,6 +23,10 @@ class Store(KaraCos.Db.StoreParent):
 
     def __init__(self,parent=None,base=None,data=None):
         KaraCos.Db.StoreParent.__init__(self,parent=parent,base=base,data=data)
+        if 'stylesheets' not in self:
+            self['stylesheets'] = []
+        if 'store' not in self['stylesheets']:
+            self['stylesheets'].append("store")
     
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
@@ -31,7 +35,6 @@ class Store(KaraCos.Db.StoreParent):
         if 'WebType' not in data:
             data['WebType'] = 'Store'
         return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
-    
     
     @KaraCos._Db.ViewsProcessor.isview('self','javascript')
     def __get_open_cart_for_customer__(self,customer_id):
@@ -84,15 +87,12 @@ class Store(KaraCos.Db.StoreParent):
             customer_id = 'anonymous.%s' % cherrypy.session._id
         return self._get_open_cart_for_customer(customer_id)
             
-        
-        
-    
     @KaraCos._Db.isaction
     def view_shopping_cart(self):
         """
         """
         #person = self.__domain__._get_person_data()
-        return self.get_open_cart_for_user()
+        return {'status':'success','data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
 
     @KaraCos._Db.isaction
     def cancel_shopping_cart(self):
@@ -115,7 +115,7 @@ class Store(KaraCos.Db.StoreParent):
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT'},
                  {'name':'country-name', 'title':'Pays','dataType': 'TEXT'},
-                 {'name':'new-adr','title':'Ajouter une adresse','dataType': 'HIDDEN', 'value': 'Ajouter'},
+                 {'name':'new-adr','dataType': 'HIDDEN', 'value': 'Ajouter'},
                  ] }
         if 'adrs' in user:
             forms = []
@@ -131,7 +131,7 @@ class Store(KaraCos.Db.StoreParent):
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT', 'value':user['adrs'][adr]['locality']},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT', 'value':user['adrs'][adr]['region']},
                  {'name':'country-name', 'title':'Pays','dataType': 'TEXT', 'value':user['adrs'][adr]['country-name']},
-                 {'name':'use-adr','title':'Utiliser cette adresse de livraison','dataType': 'HIDDEN', 'value': 'Utiliser'},
+                 {'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'},
                              ] }
                 
                 forms.append(adrform)
@@ -181,6 +181,7 @@ class Store(KaraCos.Db.StoreParent):
         self.add_cart_adr(user,'billing',kw)
                 
     add_cart_billing.get_form = _add_adr_form
+    add_cart_billing.label = _("Adresse de Facturation")
     
     @KaraCos._Db.isaction
     def validate_cart(self,*args,**kwds):
@@ -205,7 +206,7 @@ class Store(KaraCos.Db.StoreParent):
             cart['customer_id'] = user.id
             cart.save()
         cart._do_self_validation()
-        return cart
+        return {'status':'success','data':cart,'datatype':'ShoppingCart'}
     
     
     def _set_services_form(self):
