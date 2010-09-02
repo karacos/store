@@ -35,6 +35,11 @@ class StoreItem(KaraCos.Db.Resource):
         KaraCos.Db.Resource.__init__(self,parent=parent,base=base,data=data)
         self.__store__ = parent.__store__
     
+    def _publish_node(self):
+        KaraCos.Db.Resource._publish_node(self)
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_to_cart")
+        self.save()
+    
     
     def _edit_storeitem_form(self):
         if 'description' not in self:

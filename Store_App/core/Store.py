@@ -46,6 +46,20 @@ class Store(KaraCos.Db.StoreParent):
                 }
             }
         """
+    def _publish_node(self):
+        KaraCos.Db.WebNode._publish_node(self)
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_billing")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_shipping")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("pay_cart")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("validate_cart")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("view_shopping_cart")
+        self.save()
+        
+    @KaraCos._Db.isaction
+    def publish_node(self):
+        self._publish_node()
+        return {'status':'success', 'message':_("L'Artiste est maintenant visible de tous")}
     
     def _get_open_cart_for_customer(self,customer_id):
         KaraCos._Db.log.debug("BEGIN _get_active_cart_for_customer")
