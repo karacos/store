@@ -94,13 +94,21 @@ class Store(KaraCos.Db.StoreParent):
     
     def get_open_cart_for_user(self):
         ""
+        cart = None
         customer_id = ''
+        user = self.__domain__.get_user_auth()
+        if 'cart_id' in cherrypy.session:
+            cart = self.db[cherrypy.session['cart_id']]
+            if user.id != cart['customer_id']:
+                del cherrypy.session['cart_id']
+                cart = None
         if self.__domain__.is_user_authenticated():
-            customer_id = self.__domain__.get_user_auth().id
+            customer_id = user.id
         else:
             customer_id = 'anonymous.%s' % cherrypy.session._id
-        return self._get_open_cart_for_customer(customer_id)
-            
+        if cart == None:    
+            cart = self._get_open_cart_for_customer(customer_id)
+        return cart
     @KaraCos._Db.isaction
     def view_shopping_cart(self):
         """
