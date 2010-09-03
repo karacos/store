@@ -73,7 +73,8 @@ class Store(KaraCos.Db.StoreParent):
                 result = self.db[cart.key]
         else:
             name = "%s" % uuid4().hex
-            data = {'name':name, 'status':'open', 'is_active': 'true', 'customer_id': customer_id}
+            data = {'name':name, 'status':'open',
+                    'is_active': 'true', 'customer_id': customer_id}
             self._create_child_node(data=data,type="ShoppingCart")
             result = self.__childrens__[name]
     
@@ -94,21 +95,27 @@ class Store(KaraCos.Db.StoreParent):
     
     def get_open_cart_for_user(self):
         ""
+        user = self.__domain__.get_user_auth()
         cart = None
         customer_id = ''
-        user = self.__domain__.get_user_auth()
-        if 'cart_id' in cherrypy.session:
-            cart = self.db[cherrypy.session['cart_id']]
-            if user.id != cart['customer_id']:
-                del cherrypy.session['cart_id']
-                cart = None
         if self.__domain__.is_user_authenticated():
             customer_id = user.id
         else:
             customer_id = 'anonymous.%s' % cherrypy.session._id
+        if 'cart_id' in cherrypy.session:
+            cart = self.db[cherrypy.session['cart_id']]
+            if user.id != cart['customer_id']:
+                if cart['customer_id'] == 'anonymous.%s' % cherrypy.session._id:
+                    cart['customer_id'] = customer_id
+                    cart.save()
+                else:
+                    del cherrypy.session['cart_id']
+                    cart = None
         if cart == None:    
             cart = self._get_open_cart_for_customer(customer_id)
+        cherrypy.session['cart_id'] = cart.id
         return cart
+    
     @KaraCos._Db.isaction
     def view_shopping_cart(self):
         """
@@ -131,6 +138,7 @@ class Store(KaraCos.Db.StoreParent):
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
+         'notice': _("Nouvelle adresse de facturation"),
          'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
                  {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
                  {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
@@ -141,22 +149,22 @@ class Store(KaraCos.Db.StoreParent):
                  ] }
         if 'adrs' in user:
             forms = []
-            
+            adrform = {'title': _("Adresse de facturation"),
+                       'submit': _('Utiliser'),
+                       'notice': _("Choisissez une adresse pour la facturation"),
+                       'fields': [{'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'}] }
+            adrsfield = {'name':'label', 'title':'Choisissez une adresse','dataType': 'TEXT', 'formType':'RADIO', 'values': []}
             for adr in user['adrs'].keys() :
-                adrform = {}
-                adrform = {'title': _("Adresse %s" % adr),
-                     'submit': _('Utiliser'),
-                     'fields': [
-                 {'name':'label', 'title':'Libelle','dataType': 'TEXT', 'value': adr},
-                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA', 'value':user['adrs'][adr]['street-address']},
-                 {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT', 'value':user['adrs'][adr]['postal-code']},
-                 {'name':'locality', 'title':'Ville','dataType': 'TEXT', 'value':user['adrs'][adr]['locality']},
-                 {'name':'region', 'title':'Etat','dataType': 'TEXT', 'value':user['adrs'][adr]['region']},
-                 {'name':'country-name', 'title':'Pays','dataType': 'TEXT', 'value':user['adrs'][adr]['country-name']},
-                 {'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'},
-                             ] }
+                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                                     user['adrs'][adr]['street-address'],
+                                     user['adrs'][adr]['postal-code'],
+                                     user['adrs'][adr]['locality'],
+                                     user['adrs'][adr]['region'],
+                                     user['adrs'][adr]['country-name'])
+                adrsfield['values'].append({'value':adr,'label':fieldlabel})
                 
-                forms.append(adrform)
+            adrform['fields'].append(adrsfield)
+            forms.append(adrform)
             forms.append(form)
             result = forms
         else:
@@ -183,7 +191,6 @@ class Store(KaraCos.Db.StoreParent):
             return
         if 'use-adr' in kw:
             del kw['use-adr']
-            user['adrs'][label] = kw
             cart = self.get_open_cart_for_user()
             cart[adr_type] = user['adrs'][label]
             user.save()
@@ -196,7 +203,7 @@ class Store(KaraCos.Db.StoreParent):
         self.add_cart_adr(user,'shipping',kw)
                 
     add_cart_shipping.get_form = _add_adr_form
-    
+    add_cart_shipping.label = _("Adresse de livraison")
     @KaraCos._Db.isaction
     def add_cart_billing(self,*args,**kw):
         user = self.__domain__._get_person_data()
