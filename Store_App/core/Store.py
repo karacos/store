@@ -54,6 +54,8 @@ class Store(KaraCos.Db.StoreParent):
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("pay_cart")
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("validate_cart")
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("view_shopping_cart")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("remove_item_from_cart")
+        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("set_number_item")
         self.save()
         
     @KaraCos._Db.isaction
@@ -124,6 +126,32 @@ class Store(KaraCos.Db.StoreParent):
         return {'status':'success','data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
 
     @KaraCos._Db.isaction
+    def remove_item_from_cart(self,item_id=None):
+        """
+        """
+        cart = self.get_open_cart_for_user()
+        if item_id in cart['items']:
+            del cart['items'][item_id]
+            cart.save()
+            return {'status' :'success', 'message':_("item retire du panier avec succes")}
+        else:
+            return {'status' :'failure', 'message': _("'l'item ne fait pas partie du panier")}
+            
+    @KaraCos._Db.isaction
+    def set_number_item(self,item_id=None,number=None):
+        """
+        sets a new number of given items in shopping Cart
+        """
+        cart = self.get_open_cart_for_user()
+        if item_id in cart['items']:
+            cart['items'][item_id] = int(number)
+            cart.save()
+            return {'status' :'success', 'message':_("item modifie avec succes")}
+        else:
+            return {'status' :'failure', 'message': _("'l'item ne fait pas partie du panier")}
+        
+    
+    @KaraCos._Db.isaction
     def cancel_shopping_cart(self):
         """
         """
@@ -133,13 +161,14 @@ class Store(KaraCos.Db.StoreParent):
         cart.save()
         return
         
-    def _add_adr_form(self):
+    def _add_shipping_adr_form(self):
         user = self.__domain__._get_person_data()
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
-         'notice': _("Nouvelle adresse de facturation"),
+         'notice': _("Nouvelle adresse de livraison"),
          'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
+                 {'name':'destname', 'title':_('Nom du destinataire'),'dataType': 'TEXT'},
                  {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
                  {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
@@ -149,13 +178,14 @@ class Store(KaraCos.Db.StoreParent):
                  ] }
         if 'adrs' in user:
             forms = []
-            adrform = {'title': _("Adresse de facturation"),
+            adrform = {'title': _("Adresse de livraison"),
                        'submit': _('Utiliser'),
-                       'notice': _("Choisissez une adresse pour la facturation"),
+                       'notice': _("Choisissez une adresse pour la livraison"),
                        'fields': [{'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'}] }
             adrsfield = {'name':'label', 'title':'Choisissez une adresse','dataType': 'TEXT', 'formType':'RADIO', 'values': []}
             for adr in user['adrs'].keys() :
-                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                                     user['adrs'][adr]['destname'],
                                      user['adrs'][adr]['street-address'],
                                      user['adrs'][adr]['postal-code'],
                                      user['adrs'][adr]['locality'],
@@ -171,6 +201,46 @@ class Store(KaraCos.Db.StoreParent):
             result = form
         return result
     
+    
+    def _add_billing_adr_form(self):
+        user = self.__domain__._get_person_data()
+        result = None
+        form = {'title': _("Adresse"),
+         'submit': _('Ajouter'),
+         'notice': _("Nouvelle adresse de facturation"),
+         'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
+                    {'name':'destname', 'title':_('Nom du destinataire'),'dataType': 'TEXT'},
+                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
+                 {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
+                 {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
+                 {'name':'region', 'title':'Etat','dataType': 'TEXT'},
+                 {'name':'country-name', 'title':'Pays','dataType': 'TEXT'},
+                 {'name':'new-adr','dataType': 'HIDDEN', 'value': 'Ajouter'},
+                 ] }
+        if 'adrs' in user:
+            forms = []
+            adrform = {'title': _("Adresse de facturation"),
+                       'submit': _('Utiliser'),
+                       'notice': _("Choisissez une adresse pour la facturation"),
+                       'fields': [{'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'}] }
+            adrsfield = {'name':'label', 'title':'Choisissez une adresse','dataType': 'TEXT', 'formType':'RADIO', 'values': []}
+            for adr in user['adrs'].keys() :
+                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                                     user['adrs'][adr]['destname'],
+                                     user['adrs'][adr]['street-address'],
+                                     user['adrs'][adr]['postal-code'],
+                                     user['adrs'][adr]['locality'],
+                                     user['adrs'][adr]['region'],
+                                     user['adrs'][adr]['country-name'])
+                adrsfield['values'].append({'value':adr,'label':fieldlabel})
+                
+            adrform['fields'].append(adrsfield)
+            forms.append(adrform)
+            forms.append(form)
+            result = forms
+        else:
+            result = form
+        return result
     
     def add_cart_adr(self,user,adr_type,kw):
         """
@@ -202,14 +272,15 @@ class Store(KaraCos.Db.StoreParent):
         user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'shipping',kw)
                 
-    add_cart_shipping.get_form = _add_adr_form
+    add_cart_shipping.get_form = _add_shipping_adr_form
     add_cart_shipping.label = _("Adresse de livraison")
+    
     @KaraCos._Db.isaction
     def add_cart_billing(self,*args,**kw):
         user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'billing',kw)
                 
-    add_cart_billing.get_form = _add_adr_form
+    add_cart_billing.get_form = _add_billing_adr_form
     add_cart_billing.label = _("Adresse de Facturation")
     
     @KaraCos._Db.isaction

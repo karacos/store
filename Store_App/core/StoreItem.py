@@ -77,8 +77,8 @@ class StoreItem(KaraCos.Db.Resource):
         assert False, "Method _do_add_validation has to be implemented in subclass"
 
     
-    @KaraCos._Db.isaction
-    def add_to_cart(self,*args,**kw):
+
+    def _add_to_cart(self,*args,**kw):
         "Add item to ShoppingCart, with optional quantity, default is 1"
         cart = self.__store__.get_open_cart_for_user()
         
@@ -93,6 +93,10 @@ class StoreItem(KaraCos.Db.Resource):
         self._do_add_validation(cart,kw['number'])
         cart._add_item(*args,**kw)
         return cart
+
+    @KaraCos._Db.isaction
+    def add_to_cart(self,*args,**kw):
+        self._add_to_cart(*args,**kw)
     add_to_cart.form = {'title': _("Ajouter au panier"),
          'submit': _('Ajouter'),
          'fields': [{'name':'number', 'title':'Quantite','dataType': 'TEXT', 'value': 1}]}
