@@ -225,6 +225,8 @@ class Store(KaraCos.Db.StoreParent):
                        'fields': [{'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'}] }
             adrsfield = {'name':'label', 'title':'Choisissez une adresse','dataType': 'TEXT', 'formType':'RADIO', 'values': []}
             for adr in user['adrs'].keys() :
+                if 'destname' not in user['adrs'][adr]:
+                    user['adrs'][adr]['destname'] = ""
                 fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
                                      user['adrs'][adr]['destname'],
                                      user['adrs'][adr]['street-address'],
@@ -368,12 +370,17 @@ class Store(KaraCos.Db.StoreParent):
     
     set_services.get_form = _set_services_form
     
-    @KaraCos._Db.isaction
-    def _get_services(self):
+    def __get_services__(self):
         """
         """
         assert 'conf_services' in self
         return self['conf_services'].keys()
+    
+    @KaraCos._Db.isaction
+    def _get_services(self):
+        """
+        """
+        return {'status':'success','message':self.__get_services__()}
     
     def _get_service_config(self,service):
         """
@@ -387,7 +394,7 @@ class Store(KaraCos.Db.StoreParent):
         if '__services__' not in dir(self):
             self.__services__ = dict()
         if service not in self.__services__:
-            assert service in self._get_services()
+            assert service in self.__get_services__()
             svc_cls = KaraCos.Apps['store'].services.get_service(service)
             self.__services__[service] = svc_cls((self._get_service_config(service)))
         return self.__services__[service]
@@ -398,7 +405,7 @@ class Store(KaraCos.Db.StoreParent):
         """
         assert 'service' in kw
         service = kw['service']
-        assert service in self._get_services()
+        assert service in self.__get_services__()
         person = self.__domain__._get_person_data()
         cart = self.get_open_cart_for_user()
         payment = cart._create_payment(self._get_service(service))

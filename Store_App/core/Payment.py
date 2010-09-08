@@ -22,21 +22,22 @@ class Payment(KaraCos.Db.Node):
     def create(parent=None, base=None,data=None,owner=None):
         assert isinstance(parent,KaraCos.Db.ShoppingCart), "Parent type invalid : %s - Should be Store" % type(parent)
         assert 'service' in data
-        assert data['service'] in parent.__store__._get_services()
+        assert 'name' in data['service']
+        assert data['service']['name'] in parent.__store__.__get_services__()
         assert isinstance(data,dict)
         if 'type' not in data:
             data['type'] = 'Payment'
         result = KaraCos.Db.Node.create(parent=parent,base=False,data=data,owner=owner)
         return result
 
-    @KaraCos._Db.isaction
+    #@KaraCos._Db.isaction
     def do_forward(self):
         """
         Creates payment for service
         """
         return self.__store__._get_service(self['service']['name']).do_forward(self.__cart__,self)
     
-    @KaraCos._Db.isaction
+    #@KaraCos._Db.isaction
     def do_callback(self,action,*args,**kw):
         """
         """
