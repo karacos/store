@@ -36,6 +36,11 @@ class Store(KaraCos.Db.StoreParent):
             data['WebType'] = 'Store'
         return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
     
+    def _get_backoffice_node(self):
+        if '_backoffice' not in self['childrens']:
+            raise KaraCos.exception.DataRequired("please create backoffice node", _("Create BO node"),"/%s/"%self.get_relative_uri(),self,self.create_child_node)
+        return self['childrens']['_backoffice']
+        
     @KaraCos._Db.ViewsProcessor.isview('self','javascript')
     def __get_open_cart_for_customer__(self,customer_id):
         """
@@ -308,6 +313,7 @@ class Store(KaraCos.Db.StoreParent):
             cart['customer_id'] = user.id
             cart.save()
         cart._do_self_validation()
+        self._get_backoffice_node()._validate_cart(cart)
         return {'status':'success','data':cart,'datatype':'ShoppingCart'}
     
     

@@ -118,7 +118,9 @@ class ShoppingCart(KaraCos.Db.Node):
         data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
         self['status'] = 'process_pay'
-        return self.__childrens__[name]
+        result  = self.__childrens__[name]
+        self.__store__._get_backoffice_node()._set_payment_created(self,result)
+        return result
     
     def _do_payment_validated(self,payment):
         self['status'] = 'payment_ok'
@@ -127,8 +129,11 @@ class ShoppingCart(KaraCos.Db.Node):
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_processing(self)
         self.save()
+        self.__store__._get_backoffice_node()._set_payment_validated(self,payment)
     
     def _do_payment_cancelled(self,payment):
         self['status'] = 'payment_ko'
+        self.__store__._get_backoffice_node()._set_payment_cancelled(self,payment)
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_cancel(self)
+        self.__store__._get_backoffice_node()._set_payment_cancelled(self,payment)
