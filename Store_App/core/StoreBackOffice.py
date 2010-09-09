@@ -4,7 +4,8 @@ Created on 9 sept. 2010
 @author: nico
 '''
 import KaraCos
-
+_ = KaraCos._
+import datetime
 class StoreBackOffice(KaraCos.Db.WebNode):
     '''
     BackOffice resource
@@ -25,9 +26,9 @@ class StoreBackOffice(KaraCos.Db.WebNode):
         if 'WebType' not in data:
             data['WebType'] = 'StoreBackOffice'
         data['name'] = '_backoffice'
-        return KaraCos.Db.WebNode.create(parent=parent,base=True,data=data,owner=owner)
+        return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
     
-    @KaraCos.Db.isaction
+    @KaraCos._Db.isaction
     def rename(self):
         assert False, "Rename backoffice is not allowed"
     
@@ -35,26 +36,57 @@ class StoreBackOffice(KaraCos.Db.WebNode):
         if '_transactions' not in self['childrens']:
             data = {'name':'_transactions'}
             self._create_child_node(data=data, type='Node')
-        return self['childrens']['_transactions']
+        return self.db[self['childrens']['_transactions']]
     
     def _validate_cart(self, cart):
         """
-        When a cart is validated
+        When a cart is validated, creates a record for transaction
         """
-        data = {'name': cart.id, 'bill':cart._get_bill_data()}
-        self._get_transactions_node()._create_child_node()
+        transactions = self._get_transactions_node()
+        if cart.id not in transactions['childrens']:
+            # Transaction is not registered
+            data = {'name': cart.id, 'status':'pending', 'log': []}
+            transactions._create_child_node(data=data,type='Node')
+        else:
+            transaction = transactions.db[transactions['childrens'][cart.id]]
+            transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                       'action':'validate_cart', 'message':'cart validation'})
     
     def _set_payment_created(self, cart, payment):
         """
-        When a payment is created
+        When a payment is created, store in transaction record the payment_id
         """
+        transactions = self._get_transactions_node()
+        assert cart.id in transactions['childrens'], _("Corruption in process; transaction is not registered")
+        transaction = transactions.db[transactions['childrens'][cart.id]]
+        transaction['bill'] = cart._get_bill_data()
+        transaction['active_payment'] = {'id': payment.id,'service': payment['service']['name'],'creation_date':payment['creation_date']}
+        transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                   'action':'payment_created', 'creation_date':payment['creation_date'],
+                                   'payment_id':payment.id,'service': payment['service']['name']})
+        transaction.save()
+        
     
     def _set_payment_validated(self, cart, payment):
         """
-        When the payment is validated by thirdparty
+        When the payment is validated by thirdparty, update transaction record status
         """
+        transactions = self._get_transactions_node()
+        assert cart.id in transactions['childrens'], _("Corruption in process; transaction is not registered")
+        transaction = transactions.db[transactions['childrens'][cart.id]]
+        assert transaction['active_payment']['id'] == payment.id, _("Payment id doesn't match")
+        transaction['status'] = 'payment_validated'
+        transaction.save()
+        
+        
     
     def _set_payment_cancelled(self, cart, payment):
         """
-        When the payment is cancelled
+        When the payment is cancelled, update transaction record status
         """
+        transactions = self._get_transactions_node()
+        assert cart.id in transactions['childrens'], _("Corruption in process; transaction is not registered")
+        transaction = transactions.db[transactions['childrens'][cart.id]]
+        assert transaction['active_payment']['id'] == payment.id, _("Payment id doesn't match")
+        transaction['status'] = 'payment_cancelled'
+        transaction.save()

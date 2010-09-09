@@ -35,12 +35,20 @@ class Store(KaraCos.Db.StoreParent):
         if 'WebType' not in data:
             data['WebType'] = 'Store'
         return KaraCos.Db.WebNode.create(parent=parent,base=base,data=data,owner=owner)
-    
+
+    @KaraCos._Db.isaction
+    def create_bo_node(self, type='StoreBackOffice'):
+        assert issubclass(KaraCos.Db.__dict__[type], KaraCos.Db.StoreBackOffice), _("Type is not StoreBackOffice subclass")
+        data = {'name':'_backoffice'}
+        self._create_child_node(data=data, type=type, base=True)
+    create_bo_node.form = {'title':'Creates BackOffice Node',
+                           'submit': 'Create',
+                           'fields': [{'name': 'type', 'title':'Type','dataType': 'TEXT','value':'StoreBackOffice'}]}
     def _get_backoffice_node(self):
         if '_backoffice' not in self['childrens']:
-            raise KaraCos.exception.DataRequired("please create backoffice node", _("Create BO node"),"/%s/"%self.get_relative_uri(),self,self.create_child_node)
-        return self['childrens']['_backoffice']
-        
+            raise KaraCos._Core.exception.DataRequired("please create backoffice node", _("Create BO node"),"/%s/"%self.get_relative_uri(),self,self.create_bo_node)
+        return self.db[self['childrens']['_backoffice']]
+
     @KaraCos._Db.ViewsProcessor.isview('self','javascript')
     def __get_open_cart_for_customer__(self,customer_id):
         """
