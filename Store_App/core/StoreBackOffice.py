@@ -15,6 +15,7 @@ class StoreBackOffice(KaraCos.Db.WebNode):
     def __init__(self,parent=None,base=None,data=None):
         assert isinstance(parent,KaraCos.Db.Store), "parent of backoffice is a store"
         KaraCos.Db.WebNode.__init__(self,parent=parent,base=base,data=data)
+        self.__store__ = parent
 
     @staticmethod
     def create(parent=None, base=None,data=None, owner=None):
@@ -49,8 +50,9 @@ class StoreBackOffice(KaraCos.Db.WebNode):
             transactions._create_child_node(data=data,type='Node')
         else:
             transaction = transactions.db[transactions['childrens'][cart.id]]
-            transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-                                       'action':'validate_cart', 'message':'cart validation'})
+        transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                   'action':'validate_cart', 'message':'cart validation'})
+        transaction.save()
     
     def _set_payment_created(self, cart, payment):
         """
@@ -63,7 +65,7 @@ class StoreBackOffice(KaraCos.Db.WebNode):
         transaction['active_payment'] = {'id': payment.id,'service': payment['service']['name'],'creation_date':payment['creation_date']}
         transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                                    'action':'payment_created', 'creation_date':payment['creation_date'],
-                                   'payment_id':payment.id,'service': payment['service']['name']})
+                                   'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()
         
     
@@ -76,6 +78,9 @@ class StoreBackOffice(KaraCos.Db.WebNode):
         transaction = transactions.db[transactions['childrens'][cart.id]]
         assert transaction['active_payment']['id'] == payment.id, _("Payment id doesn't match")
         transaction['status'] = 'payment_validated'
+        transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                   'action':'payment_validated', 'creation_date':payment['creation_date'],
+                                   'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()
         
         
@@ -89,4 +94,7 @@ class StoreBackOffice(KaraCos.Db.WebNode):
         transaction = transactions.db[transactions['childrens'][cart.id]]
         assert transaction['active_payment']['id'] == payment.id, _("Payment id doesn't match")
         transaction['status'] = 'payment_cancelled'
+        transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                   'action':'payment_cancelled', 'creation_date':payment['creation_date'],
+                                   'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()

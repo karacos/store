@@ -31,6 +31,7 @@ class ShoppingCart(KaraCos.Db.Node):
         return result
     
     def _add_item(self,*args,**kw):
+        assert self['status'] == 'open'
         assert 'number' in kw
         assert 'item' in kw
         assert isinstance(kw['item'],KaraCos.Db.StoreItem)
@@ -118,7 +119,7 @@ class ShoppingCart(KaraCos.Db.Node):
         data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
         self['status'] = 'process_pay'
-        result  = self.__childrens__[name]
+        result  = self.db[self.__childrens['name']]
         self.__store__._get_backoffice_node()._set_payment_created(self,result)
         return result
     
@@ -131,9 +132,12 @@ class ShoppingCart(KaraCos.Db.Node):
         self.save()
         self.__store__._get_backoffice_node()._set_payment_validated(self,payment)
     
-    def _do_payment_cancelled(self,payment):
-        self['status'] = 'payment_ko'
-        self.__store__._get_backoffice_node()._set_payment_cancelled(self,payment)
+    def _do_cart_cancel(self):
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_cancel(self)
+    
+    def _do_payment_cancelled(self,payment):
+        self['is_open'] = 'true'
+        self['status'] = 'payment_ko'
+        self.save()
         self.__store__._get_backoffice_node()._set_payment_cancelled(self,payment)

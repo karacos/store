@@ -77,11 +77,11 @@ class Store(KaraCos.Db.StoreParent):
         return {'status':'success', 'message':_("L'Artiste est maintenant visible de tous")}
     
     def _get_open_cart_for_customer(self,customer_id):
-        KaraCos._Db.log.debug("BEGIN _get_active_cart_for_customer")
+        KaraCos._Db.log.debug("BEGIN _get_open_cart_for_customer")
         assert isinstance(customer_id,basestring), "Parameter person must be String - repr = %s " % customer_id
         result = None
         carts = self.__get_open_cart_for_customer__(customer_id)
-        assert carts.__len__() <= 1, "_get_active_cart_for_customer : More than one active Cart for person"
+        assert carts.__len__() <= 1, "_get_open_cart_for_customer : More than one active Cart for person"
         if carts.__len__() == 1:
             for cart in carts:
 #                    KaraCos._Db.log.debug("get_child_by_name : db.key = %s db.value = %s" % (child.key,domain.value) )
@@ -93,6 +93,15 @@ class Store(KaraCos.Db.StoreParent):
             self._create_child_node(data=data,type="ShoppingCart")
             result = self.__childrens__[name]
     
+        return result
+    
+    def _get_open_carts_for_customer(self,customer_id):
+        self.log.debug("BEGIN _get_open_carts_for_customer")
+        assert isinstance(customer_id,basestring), "Parameter person must be String - repr = %s " % customer_id
+        result = []
+        carts = self.__get_open_cart_for_customer__(customer_id)
+        for cart in carts:
+            result.append(self.db[cart.key])
         return result
     
     def _is_open_cart_for_customer(self,customer_id):
@@ -107,6 +116,7 @@ class Store(KaraCos.Db.StoreParent):
             result = False
     
         return result
+    
     
     def get_open_cart_for_user(self):
         ""
@@ -131,6 +141,20 @@ class Store(KaraCos.Db.StoreParent):
         cherrypy.session['cart_id'] = cart.id
         return cart
     
+    def get_open_carts_for_user(self):
+        """
+        Same as above, but returns an array of shoppingcarts and don't fails if more than one (useful for user to trac and remove his old commands)
+        """
+        user = self.__domain__.get_user_auth()
+        customer_id = ''
+        if self.__domain__.is_user_authenticated():
+            customer_id = user.id
+        else:
+            assert False, _("Unavailable to anonymous user")
+            
+        result = self._get_open_carts_for_customer(customer_id)
+        return result
+        
     @KaraCos._Db.isaction
     def view_shopping_cart(self):
         """

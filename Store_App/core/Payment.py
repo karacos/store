@@ -49,8 +49,7 @@ class Payment(KaraCos.Db.Node):
     def do_cancel(self):
         ""
         self['status'] = 'canceled'
-        self.parent['is_open'] = 'false'
-        self.__cart__['status'] = 'payment_ko'
+        self.save()
         self.__cart__._do_payment_cancelled(self)
         return "Operation Cancelled"
     
