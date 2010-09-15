@@ -1,0 +1,236 @@
+GetExpressCheckoutDetails
+
+    ACK
+
+        0
+            "Success"
+
+    LASTNAME
+
+        0
+            "User"
+
+    SHIPTOCITY
+
+        0
+            "Paris"
+
+    SHIPTONAME
+
+        0
+            "Test User"
+
+    L_TAXAMT1
+
+        0
+            "0.00"
+
+    SHIPDISCAMT
+
+        0
+            "0.00"
+
+    SHIPPINGOPTIONISDEFAULT
+
+        0
+            "false"
+
+    ITEMAMT
+
+        0
+            "11.15"
+
+    L_ITEMWEIGHTVALUE0
+
+        0
+            " 0.00000"
+
+    L_ITEMWEIGHTVALUE1
+
+        0
+            " 0.00000"
+
+    SHIPPINGAMT
+
+        0
+            "0.00"
+
+    ADDRESSSTATUS
+
+        0
+            "Unconfirmed"
+
+    EMAIL
+
+        0
+            "buy1_1267810701_per@traderzic.com"
+
+    CORRELATIONID
+
+        0
+            "37af762aabc1c"
+
+    SHIPTOCOUNTRYCODE
+
+        0
+            "FR"
+
+    TAXAMT
+
+        0
+            "0.00"
+
+    SHIPTOSTREET
+
+        0
+            "Av. de la Pelouse, 87648672 Mayet"
+
+    L_ITEMLENGTHVALUE0
+
+        0
+            " 0.00000"
+
+    SHIPTOCOUNTRYNAME
+
+        0
+            "France"
+
+    L_QTY1
+
+        0
+            "1"
+
+    L_QTY0
+
+        0
+            "1"
+
+    AMT
+
+        0
+            "11.15"
+
+    PAYERID
+
+        0
+            "CHXM4YVZCTTVU"
+
+    L_ITEMLENGTHVALUE1
+
+        0
+            " 0.00000"
+
+    COUNTRYCODE
+
+        0
+            "FR"
+
+    CURRENCYCODE
+
+        0
+            "EUR"
+
+    TOKEN
+
+        0
+            "EC-5K789604D1306894K"
+
+    VERSION
+
+        0
+            "60.0"
+
+    INSURANCEOPTIONSELECTED
+
+        0
+            "false"
+
+    BUILD
+
+        0
+            "1212010"
+
+    INSURANCEAMT
+
+        0
+            "0.00"
+
+    SHIPTOZIP
+
+        0
+            "75002"
+
+    CHECKOUTSTATUS
+
+        0
+            "PaymentActionNotInitiated"
+
+    L_ITEMHEIGHTVALUE1
+
+        0
+            " 0.00000"
+
+    PAYERSTATUS
+
+        0
+            "verified"
+
+    L_ITEMHEIGHTVALUE0
+
+        0
+            " 0.00000"
+
+    L_ITEMWIDTHVALUE0
+
+        0
+            " 0.00000"
+
+    FIRSTNAME
+
+        0
+            "Test"
+
+    L_ITEMWIDTHVALUE1
+
+        0
+            " 0.00000"
+
+    TIMESTAMP
+
+        0
+            "2010-03-05T21:45:09Z"
+
+    SHIPTOSTATE
+
+        0
+            "Alsace"
+
+    L_TAXAMT0
+
+        0
+            "0.00"
+
+    HANDLINGAMT
+
+        0
+            "0.00"
+
+    L_NAME1
+
+        0
+            "Vie de Chien"
+
+    L_NAME0
+
+        0
+            "Argenbivore"
+
+    L_AMT1
+
+        0
+            "0.60"
+
+    L_AMT0
+
+        0
+            "10.55"

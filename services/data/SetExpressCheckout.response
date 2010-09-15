@@ -1,0 +1,31 @@
+SetExpressCheckout
+
+    ACK
+
+        0
+            "Success"
+
+    TIMESTAMP
+
+        0
+            "2010-03-05T21:44:42Z"
+
+    TOKEN
+
+        0
+            "EC-5K789604D1306894K"
+
+    VERSION
+
+        0
+            "60.0"
+
+    BUILD
+
+        0
+            "1212010"
+
+    CORRELATIONID
+
+        0
+            "53d1f15ed8df5"

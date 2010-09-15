@@ -1,0 +1,106 @@
+DoExpressCheckoutPayment SUCCESS
+
+    ORDERTIME
+
+        0
+            "2010-03-05T21:45:12Z"
+
+    ACK
+
+        0
+            "Success"
+
+    TIMESTAMP
+
+        0
+            "2010-03-05T21:45:13Z"
+
+    CURRENCYCODE
+
+        0
+            "EUR"
+
+    SHIPPINGOPTIONISDEFAULT
+
+        0
+            "false"
+
+    PAYMENTSTATUS
+
+        0
+            "Completed"
+
+    PENDINGREASON
+
+        0
+            "None"
+
+    PAYMENTTYPE
+
+        0
+            "instant"
+
+    TOKEN
+
+        0
+            "EC-5K789604D1306894K"
+
+    VERSION
+
+        0
+            "60.0"
+
+    SUCCESSPAGEREDIRECTREQUESTED
+
+        0
+            "false"
+
+    BUILD
+
+        0
+            "1212010"
+
+    PROTECTIONELIGIBILITY
+
+        0
+            "Ineligible"
+
+    TAXAMT
+
+        0
+            "0.00"
+
+    FEEAMT
+
+        0
+            "0.63"
+
+    REASONCODE
+
+        0
+            "None"
+
+    TRANSACTIONID
+
+        0
+            "56L59553T2329105G"
+
+    INSURANCEOPTIONSELECTED
+
+        0
+            "false"
+
+    AMT
+
+        0
+            "11.15"
+
+    CORRELATIONID
+
+        0
+            "d4de4eb36db4"
+
+    TRANSACTIONTYPE
+
+        0
+            "expresscheckout"
