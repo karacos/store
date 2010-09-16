@@ -12,7 +12,7 @@ class StoreParent(karacos.db['WebNode']):
     '''
     def __init__(self,parent=None,base=None,data=None):
         karacos.db['WebNode'].__init__(self,parent=parent,base=base,data=data)
-        if isinstance(self.parent, karacos.db['StoreParent']):
+        if isinstance(self.__parent__, karacos.db['StoreParent']):
             self.__store__ = parent.__store__
         else:
             assert isinstance(self,karacos.db['Store']), "Invalid type parent"

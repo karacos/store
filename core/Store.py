@@ -75,7 +75,7 @@ class Store(karacos.db['StoreParent']):
         return {'status':'success', 'message':_("L'Artiste est maintenant visible de tous")}
     
     def _get_open_cart_for_customer(self,customer_id):
-        KaraCos._Db.log.debug("BEGIN _get_open_cart_for_customer")
+        self.log.debug("BEGIN _get_open_cart_for_customer")
         assert isinstance(customer_id,basestring), "Parameter person must be String - repr = %s " % customer_id
         result = None
         carts = self.__get_open_cart_for_customer__(customer_id)
@@ -103,7 +103,7 @@ class Store(karacos.db['StoreParent']):
         return result
     
     def _is_open_cart_for_customer(self,customer_id):
-        KaraCos._Db.log.debug("BEGIN _is_open_cart_for_customer")
+        self.log.debug("BEGIN _is_open_cart_for_customer")
         assert isinstance(customer_id,basestring), "Parameter person must be String - repr = %s " % customer_id
         result = None
         carts = self.__get_open_cart_for_customer__(customer_id)
@@ -121,22 +121,23 @@ class Store(karacos.db['StoreParent']):
         user = self.__domain__.get_user_auth()
         cart = None
         customer_id = ''
+        session = karacos.serving.get_session()
         if self.__domain__.is_user_authenticated():
             customer_id = user.id
         else:
-            customer_id = 'anonymous.%s' % cherrypy.session._id
-        if 'cart_id' in cherrypy.session:
-            cart = self.db[cherrypy.session['cart_id']]
+            customer_id = 'anonymous.%s' % session.id
+        if 'cart_id' in session:
+            cart = self.db[session['cart_id']]
             if user.id != cart['customer_id']:
-                if cart['customer_id'] == 'anonymous.%s' % cherrypy.session._id:
+                if cart['customer_id'] == 'anonymous.%s' % session.id:
                     cart['customer_id'] = customer_id
                     cart.save()
                 else:
-                    del cherrypy.session['cart_id']
+                    del session['cart_id']
                     cart = None
         if cart == None:    
             cart = self._get_open_cart_for_customer(customer_id)
-        cherrypy.session['cart_id'] = cart.id
+        session['cart_id'] = cart.id
         return cart
     
     def get_open_carts_for_user(self):
