@@ -14,7 +14,7 @@ class Provider():
     
     def __init__(self,*args,**kw):
         assert 'provider_name' in kw
-        assert kw['provider_name'] in _available_providers, _("Unknow service provider : %s" % provider_name)
+        assert kw['provider_name'] in _available_providers, _("Unknow service provider : %s" % kw['provider_name'])
         self.__provider_type__ = eval("%s.Service",kw['provider_name'])
     
     def is_ready(self):
