@@ -74,7 +74,9 @@ class ShoppingCart(karacos.db['Node']):
         """
         if 'billing_adr' not in self:
             # Billing adress is required
-            raise karacos.http.DataRequired("Validate billing","","/%s?method=validate_cart"%self.__store__.get_relative_uri(),self.__store__,self.__store__.add_cart_billing)
+            raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
+                                            backlink = "/%s?method=validate_cart"%self.__store__.get_relative_uri(),
+                                            message = "Validate billing")
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_validation(self)
         self['validated'] = True

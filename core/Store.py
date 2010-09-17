@@ -44,7 +44,9 @@ class Store(karacos.db['StoreParent']):
                            'fields': [{'name': 'type', 'title':'Type','dataType': 'TEXT','value':'StoreBackOffice'}]}
     def _get_backoffice_node(self):
         if '_backoffice' not in self['childrens']:
-            raise karacos.http.DataRequired("please create backoffice node", _("Create BO node"),"/%s/"%self.get_relative_uri(),self,self.create_bo_node)
+            raise karacos.http.DataRequired(self,self.create_bo_node,
+                                            message=_("please create backoffice node"),
+                                            backlink="/%s/"%self.get_relative_uri())
         return self.db[self['childrens']['_backoffice']]
 
     @karacos._db.ViewsProcessor.isview('self','javascript')
@@ -322,23 +324,25 @@ class Store(karacos.db['StoreParent']):
     add_cart_billing.label = _("Adresse de Facturation")
     
     @karacos._db.isaction
-    def validate_cart(self,*args,**kwds):
+    def validate_cart(self):
         """
         
         """
         self.log.info("START validate_cart")
         #assert cart_id in kw, "Parameter not found, cart_id"
         cart = None
-        if 'cart_id' in cherrypy.session:
-            cart = self.db[cherrypy.session['cart_id']]
+        session = karacos.serving.get_session()
+        if 'cart_id' in session:
+            cart = self.db[session['cart_id']]
         else:
             cart = self.get_open_cart_for_user()
-            cherrypy.session['cart_id'] = cart.id
+            session['cart_id'] = cart.id
         if not self.__domain__.is_user_authenticated():
-            raise KaraCos._Core.exception.WebAuthRequired("auth required","/%s?method=validate_cart"%self.get_relative_uri(),self.__domain__)
+            raise karacos.http.WebAuthRequired(self.__domain__,
+                                               backlink="/%s?method=validate_cart"%self.get_relative_uri())
         user = self.__domain__.get_user_auth()
         if user.id != cart['customer_id']:
-            assert 'anonymous.%s' % cherrypy.session._id == cart['customer_id'], "Cart verification failure"
+            assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")
             if self._is_open_cart_for_customer(user.id):
                 self.cancel_shopping_cart()
             cart['customer_id'] = user.id
@@ -346,8 +350,7 @@ class Store(karacos.db['StoreParent']):
         cart._do_self_validation()
         self._get_backoffice_node()._validate_cart(cart)
         return {'status':'success','data':cart,'datatype':'ShoppingCart'}
-    
-    
+                
     def _set_services_form(self):
         result = None
         form = {'title': _("Service"),

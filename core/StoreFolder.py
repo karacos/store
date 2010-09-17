@@ -17,7 +17,7 @@ class StoreFolder(karacos.db['StoreParent']):
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
         assert isinstance(data,dict)
-        assert isinstance(parent,KaraCos.Db.StoreParent)
+        assert isinstance(parent,karacos.db['StoreParent'])
         if 'WebType' not in data:
             data['WebType'] = 'StoreFolder'
         return karacos.db['WebNode'].create(parent=parent,base=False,data=data)
