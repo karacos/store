@@ -75,7 +75,7 @@ class ShoppingCart(karacos.db['Node']):
         if 'billing_adr' not in self:
             # Billing adress is required
             raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
-                                            backlink = "/%s?method=validate_cart"%self.__store__.get_relative_uri(),
+                                            backlink = "/%s/validate_cart"%self.__store__.get_relative_uri(),
                                             message = "Validate billing")
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_validation(self)
@@ -116,12 +116,18 @@ class ShoppingCart(karacos.db['Node']):
         """
         service : name of the service : 'papal_express'
         """
+        self.log.debug("_create_payment START")
         assert not self._has_active_payment()
         name = "%s" % uuid4().hex
         data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
+        self.log.debug("Payment created with name '%s'" % name)
         self['status'] = 'process_pay'
-        result  = self.db[self.__childrens['name']]
+        self['payment_id'] = name
+        self.save()
+        session = karacos.serving.get_session()
+        del session['cart_id']
+        result  = self.__childrens__[name]
         self.__store__._get_backoffice_node()._set_payment_created(self,result)
         return result
     
@@ -129,17 +135,27 @@ class ShoppingCart(karacos.db['Node']):
         self['status'] = 'payment_ok'
         self['valid_payment'] = payment.id
         self.save()
+        self.__store__._get_backoffice_node()._set_payment_validated(self,payment)
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_processing(self)
         self.save()
-        self.__store__._get_backoffice_node()._set_payment_validated(self,payment)
+        session = karacos.serving.get_session()
+        if 'cart_id' in session:
+            del session['cart_id']
     
     def _do_cart_cancel(self):
         for item_key in self['items'].keys() :
             self.db[item_key]._do_cart_cancel(self)
+        self['status'] = 'cancel'
+        self.save()
+        session = karacos.serving.get_session()
+        del session['cart_id']
+        
     
     def _do_payment_cancelled(self,payment):
         self['is_open'] = 'true'
         self['status'] = 'payment_ko'
         self.save()
         self.__store__._get_backoffice_node()._set_payment_cancelled(self,payment)
+        session = karacos.serving.get_session()
+        del session['cart_id']

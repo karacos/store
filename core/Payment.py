@@ -56,7 +56,7 @@ class Payment(karacos.db['Node']):
         self['status'] = 'validated'
         self.save()
         self.__cart__._do_payment_validated(self)
-        return "Operation Validated"
+        return {'status':'success', 'message':"Operation Validated"}
         
         
         

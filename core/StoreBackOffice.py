@@ -42,13 +42,14 @@ class StoreBackOffice(karacos.db['WebNode']):
         """
         When a cart is validated, creates a record for transaction
         """
+        self.log.debug("_validate_cart START")
         transactions = self._get_transactions_node()
         if cart.id not in transactions['childrens']:
             # Transaction is not registered
             data = {'name': cart.id, 'status':'pending', 'log': []}
+            self.log.debug("_validate_cart creating transaction '%s'" % cart.id)
             transactions._create_child_node(data=data,type='Node')
-        else:
-            transaction = transactions.db[transactions['childrens'][cart.id]]
+        transaction = transactions.db[transactions['childrens'][cart.id]]
         transaction['log'].append({'tst':datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                                    'action':'validate_cart', 'message':'cart validation'})
         transaction.save()
@@ -57,6 +58,7 @@ class StoreBackOffice(karacos.db['WebNode']):
         """
         When a payment is created, store in transaction record the payment_id
         """
+        self.log.debug("_set_payment_created START")
         transactions = self._get_transactions_node()
         assert cart.id in transactions['childrens'], _("Corruption in process; transaction is not registered")
         transaction = transactions.db[transactions['childrens'][cart.id]]
@@ -72,6 +74,7 @@ class StoreBackOffice(karacos.db['WebNode']):
         """
         When the payment is validated by thirdparty, update transaction record status
         """
+        self.log.debug("_set_payment_validated START")
         transactions = self._get_transactions_node()
         assert cart.id in transactions['childrens'], _("Corruption in process; transaction is not registered")
         transaction = transactions.db[transactions['childrens'][cart.id]]

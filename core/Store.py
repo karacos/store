@@ -42,6 +42,7 @@ class Store(karacos.db['StoreParent']):
     create_bo_node.form = {'title':'Creates BackOffice Node',
                            'submit': 'Create',
                            'fields': [{'name': 'type', 'title':'Type','dataType': 'TEXT','value':'StoreBackOffice'}]}
+
     def _get_backoffice_node(self):
         if '_backoffice' not in self['childrens']:
             raise karacos.http.DataRequired(self,self.create_bo_node,
@@ -60,7 +61,7 @@ class Store(karacos.db['StoreParent']):
             }
         """
     def _publish_node(self):
-        KaraCos.Db.WebNode._publish_node(self)
+        karacos.db['WebNode']._publish_node(self)
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_billing")
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_shipping")
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
@@ -195,8 +196,7 @@ class Store(karacos.db['StoreParent']):
         """
         #person = self.__domain__._get_person_data()
         cart = self.get_open_cart_for_user()
-        cart['status'] = 'cancel'
-        cart.save()
+        cart._do_cart_cancel()
         return
         
     def _add_shipping_adr_form(self):
@@ -339,7 +339,7 @@ class Store(karacos.db['StoreParent']):
             session['cart_id'] = cart.id
         if not self.__domain__.is_user_authenticated():
             raise karacos.http.WebAuthRequired(self.__domain__,
-                                               backlink="/%s?method=validate_cart"%self.get_relative_uri())
+                                               backlink="/%s/validate_cart"%self.get_relative_uri())
         user = self.__domain__.get_user_auth()
         if user.id != cart['customer_id']:
             assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")
@@ -386,7 +386,7 @@ class Store(karacos.db['StoreParent']):
             form['fields'].append(field)
         
     def set_paypal_express_conf(self):
-        default = KaraCos.Apps['store'].providers.paypal._default_conf
+        default = karacos.apps['store'].providers.paypal._default_conf
         for key in default.keys():
             if key not in self['conf_services']['paypal_express']:
                 self['conf_services']['paypal_express'][key] = default[key]
@@ -413,7 +413,7 @@ class Store(karacos.db['StoreParent']):
     def __get_services__(self):
         """
         """
-        assert 'conf_services' in self
+        assert 'conf_services' in self, _("Services not configured for store")
         return self['conf_services'].keys()
     
     @karacos._db.isaction
@@ -435,7 +435,7 @@ class Store(karacos.db['StoreParent']):
             self.__services__ = dict()
         if service not in self.__services__:
             assert service in self.__get_services__()
-            svc_cls = KaraCos.Apps['store'].services.get_service(service)
+            svc_cls = karacos.apps['store'].services.get_service(service)
             self.__services__[service] = svc_cls((self._get_service_config(service)))
         return self.__services__[service]
     
@@ -451,23 +451,19 @@ class Store(karacos.db['StoreParent']):
         payment = cart._create_payment(self._get_service(service))
         return payment.do_forward()
     
-    
+
     @karacos._db.isaction
     def pay_callback(self,*args,**kwds):
         """
         url handler for payment services callback
         """
-        #arg_list,kw = args
+        assert len(args) == 2
         payment_id,action = args
         self.log.info("pay_callback : -- %s -- %s --" % (payment_id,action))
-        user = self.__domain__._get_person_data()
-        cart = self.get_open_cart_for_user()
-        self.log.info("pay_callback CART : -- %s --" % (cart))
-        payment = cart.get_child_by_id(str(payment_id))
+        payment = self.db[payment_id]
         self.log.info("pay_callback ID/PAYMENT : -- %s -- %s --" % (payment_id,payment))
         result = payment.do_callback(action,*(),**kwds)
-        template = self.__domain__.lookup.get_template('/default/system')
-        return template.render(instance=self,result=result)
+        return result
         
 
         
