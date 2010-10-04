@@ -82,7 +82,11 @@ class Store(karacos.db['StoreParent']):
         assert isinstance(customer_id,basestring), "Parameter person must be String - repr = %s " % customer_id
         result = None
         carts = self.__get_open_cart_for_customer__(customer_id)
-        assert carts.__len__() <= 1, "_get_open_cart_for_customer : More than one active Cart for person"
+        if carts.__len__() > 1:
+            self.log.warn("_get_open_cart_for_customer : More than one active Cart for person")
+            for cart in carts:
+                cart_obj = self.db[cart.key]
+                cart_obj._do_cart_cancel()
         if carts.__len__() == 1:
             for cart in carts:
 #                    KaraCos._Db.log.debug("get_child_by_name : db.key = %s db.value = %s" % (child.key,domain.value) )
@@ -93,7 +97,6 @@ class Store(karacos.db['StoreParent']):
                     'is_active': 'true', 'customer_id': customer_id}
             self._create_child_node(data=data,type="ShoppingCart")
             result = self.__childrens__[name]
-    
         return result
     
     def _get_open_carts_for_customer(self,customer_id):
@@ -138,7 +141,7 @@ class Store(karacos.db['StoreParent']):
                 else:
                     del session['cart_id']
                     cart = None
-        if cart == None:    
+        if cart == None:
             cart = self._get_open_cart_for_customer(customer_id)
         session['cart_id'] = cart.id
         return cart
@@ -200,7 +203,8 @@ class Store(karacos.db['StoreParent']):
         return
         
     def _add_shipping_adr_form(self):
-        user = self.__domain__._get_person_data()
+        userojb = karacos.serving.get_session().get_user_auth()
+        user = userojb.db[userojb['childrens']['personData']]
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
@@ -241,7 +245,8 @@ class Store(karacos.db['StoreParent']):
     
     
     def _add_billing_adr_form(self):
-        user = self.__domain__._get_person_data()
+        userojb = karacos.serving.get_session().get_user_auth()
+        user = userojb.db[userojb['childrens']['personData']]
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
@@ -309,7 +314,8 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def add_cart_shipping(self,*args,**kw):
-        user = self.__domain__._get_person_data()
+        userojb = karacos.serving.get_session().get_user_auth()
+        user = userojb.db[userojb['childrens']['personData']]
         self.add_cart_adr(user,'shipping',kw)
                 
     add_cart_shipping.get_form = _add_shipping_adr_form
@@ -317,7 +323,8 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def add_cart_billing(self,*args,**kw):
-        user = self.__domain__._get_person_data()
+        userojb = karacos.serving.get_session().get_user_auth()
+        user = userojb.db[userojb['childrens']['personData']]
         self.add_cart_adr(user,'billing',kw)
                 
     add_cart_billing.get_form = _add_billing_adr_form
@@ -446,7 +453,8 @@ class Store(karacos.db['StoreParent']):
         assert 'service' in kw
         service = kw['service']
         assert service in self.__get_services__()
-        person = self.__domain__._get_person_data()
+        userojb = karacos.serving.get_session().get_user_auth()
+        person = userojb.db[userojb['childrens']['personData']]
         cart = self.get_open_cart_for_user()
         payment = cart._create_payment(self._get_service(service))
         return payment.do_forward()
