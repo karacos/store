@@ -203,8 +203,7 @@ class Store(karacos.db['StoreParent']):
         return
         
     def _add_shipping_adr_form(self):
-        userojb = karacos.serving.get_session().get_user_auth()
-        user = userojb.db[userojb['childrens']['personData']]
+        user = self.__domain__._get_person_data()
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
@@ -245,8 +244,8 @@ class Store(karacos.db['StoreParent']):
     
     
     def _add_billing_adr_form(self):
-        userojb = karacos.serving.get_session().get_user_auth()
-        user = userojb.db[userojb['childrens']['personData']]
+        #userojb = karacos.serving.get_session().get_user_auth()
+        user = self.__domain__._get_person_data()
         result = None
         form = {'title': _("Adresse"),
          'submit': _('Ajouter'),
@@ -314,8 +313,7 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def add_cart_shipping(self,*args,**kw):
-        userojb = karacos.serving.get_session().get_user_auth()
-        user = userojb.db[userojb['childrens']['personData']]
+        user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'shipping',kw)
                 
     add_cart_shipping.get_form = _add_shipping_adr_form
@@ -323,8 +321,7 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def add_cart_billing(self,*args,**kw):
-        userojb = karacos.serving.get_session().get_user_auth()
-        user = userojb.db[userojb['childrens']['personData']]
+        user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'billing',kw)
                 
     add_cart_billing.get_form = _add_billing_adr_form
@@ -454,7 +451,7 @@ class Store(karacos.db['StoreParent']):
         service = kw['service']
         assert service in self.__get_services__()
         userojb = karacos.serving.get_session().get_user_auth()
-        person = userojb.db[userojb['childrens']['personData']]
+        person = self.__domain__._get_person_data()
         cart = self.get_open_cart_for_user()
         payment = cart._create_payment(self._get_service(service))
         return payment.do_forward()
