@@ -1,1 +1,4 @@
 *.pyc
+*.class
+resources/android/gen
+resources/android/bin
