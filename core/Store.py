@@ -168,6 +168,10 @@ class Store(karacos.db['StoreParent']):
         return {'status':'success','data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
 
     @karacos._db.isaction
+    def get_shopping_cart(self):
+        return {'success': True, 'status':'success','data':self.get_open_cart_for_user()._get_cart_array()}
+
+    @karacos._db.isaction
     def remove_item_from_cart(self,item_id=None):
         """
         """

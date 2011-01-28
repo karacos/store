@@ -38,6 +38,55 @@ class StoreBackOffice(karacos.db['WebNode']):
             self._create_child_node(data=data, type='Node')
         return self.db[self['childrens']['_transactions']]
     
+
+    
+    def _reserve_item(self,item,cart):   
+        assert isinstance(item, karacos.db['StoreItem'])
+        assert isinstance(cart, karacos.db['ShoppingCart'])
+        assert 'item_stock' in self, 'No stock data'
+        assert item.id in self['item_stock'], 'No stock registered for item'
+        number = cart['items'][item.id]
+        assert self['item_stock'][item.id] >= number, "Not enough stock"
+        item['stock'] = item['stock'] - number
+        item.save()
+        if 'reserved' not in self:
+            self['reserved'] = {}
+        if item.id not in self['reserved']:
+            self['reserved'][item.id] = {}
+        cur_tmp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        self['reserved'][item.id][cart.id] = number
+        self.save()
+        return
+    
+    def _reserved_cancel(self,item,cart):
+        ""
+        assert isinstance(item, karacos.db['StoreItem'])
+        assert isinstance(cart, karacos.db['ShoppingCart'])
+        assert 'item_stock' in self, 'No stock data'
+        assert item.id in self['item_stock'], 'No stock registered for item'
+        assert 'reserved' in self, 'No reserved parts'
+        assert item.id in self['reserved'], 'No reservation for this item'
+        assert cart.id in self['reserved'][item.id], 'item not reserved for this cart'
+        assert self['reserved'][item.id][cart.id] == cart['items'][item.id], 'Inconsistent data'
+        number = cart['items'][item.id]
+        item['stock'] = item['stock'] + number
+        item.save()
+        del self['reserved'][item.id][cart.id]
+        self.save()
+        
+    def _reserved_payed(self,item,cart):
+        ""
+        assert isinstance(item, karacos.db['StoreItem'])
+        assert isinstance(cart, karacos.db['ShoppingCart'])
+        assert 'item_stock' in self, 'No stock data'
+        assert item.id in self['item_stock'], 'No stock registered for item'
+        assert 'reserved' in self, 'No reserved parts'
+        assert item.id in self['reserved'], 'No reservation for this item'
+        assert cart.id in self['reserved'][item.id], 'item not reserved for this cart'
+        assert self['reserved'][item.id][cart.id] == cart['items'][item.id], 'Inconsistent data'
+        del self['reserved'][item.id][cart.id]
+        self.save()
+       
     def _validate_cart(self, cart):
         """
         When a cart is validated, creates a record for transaction

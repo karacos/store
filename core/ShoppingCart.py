@@ -52,11 +52,33 @@ class ShoppingCart(karacos.db['Node']):
                     emit(doc._id, doc)
         }
         """
+    
+    def _get_cart_array(self):
+        result = {'items':[],'total':0, 'net_total':0, 'tax_total':0}
+        for item in self.__get_items_array__(json.dumps(self['items'].keys())):
+            if 'price' not in item.value and 'public_price' in item.value:
+                item.value['price'] = item.value['public_price']
+            result['items'].append({'name':item.value['name'],
+                                         'title': item.value['title'],
+                                            'tax':item.value['tax'],
+                                            'price':item.value['price'],
+                                            'net_price': item.value['price'] + item.value['tax'] * item.value['price'],
+                                            'number':self['items'][item.key],
+                                            'total': item.value['price'] * self['items'][item.key],
+                                            'tax_total': item.value['tax'] * item.value['price'] * self['items'][item.key],
+                                            'net_total': (item.value['price'] + item.value['tax'] * item.value['price']) * self['items'][item.key]})
+            result['total'] = result['total'] + result['items'][-1]['total']
+            result['tax_total'] = result['tax_total'] + result['items'][-1]['tax_total']
+            result['net_total'] = result['net_total'] + result['items'][-1]['net_total']
+        return result
      
     def _get_bill_data(self):
         result = {'items':{},'total':0, 'net_total':0, 'tax_total':0}
         for item in self.__get_items_array__(json.dumps(self['items'].keys())):
+            if 'price' not in item.value and 'public_price' in item.value:
+                item.value['price'] = item.value['public_price']
             result['items'][item.key] = {'name':item.value['name'],
+                                         'title': item.value['title'],
                                             'tax':item.value['tax'],
                                             'price':item.value['price'],
                                             'number':self['items'][item.key],

@@ -4,5 +4,6 @@ import Store
 import StoreBackOffice
 import StoreItem
 import SoftItem
+import HardItem
 import ShoppingCart
 import Payment
