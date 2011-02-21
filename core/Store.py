@@ -3,6 +3,7 @@ Created on 13 janv. 2010
 
 @author: nico
 '''
+import traceback
 
 __author__="Nicolas Karageuzian"
 __contributors__ = []
@@ -21,6 +22,7 @@ class Store(karacos.db['StoreParent']):
         if 'service' not in dir(karacos.apps['store']):
             karacos.apps['store'].services = __import__("services", karacos.apps['store'].__store_globals__, karacos.apps['store'].__store_locals__, ['all'], -1)
         karacos.db['StoreParent'].__init__(self,parent=parent,base=base,data=data)
+        
         if 'stylesheets' not in self:
             self['stylesheets'] = []
         if 'store' not in self['stylesheets']:
@@ -62,20 +64,71 @@ class Store(karacos.db['StoreParent']):
         """
     def _publish_node(self):
         karacos.db['WebNode']._publish_node(self)
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_billing")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_shipping")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("pay_cart")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("validate_cart")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("view_shopping_cart")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("remove_item_from_cart")
-        self['ACL']['group.everyone@%s' % self.__domain__['name']].append("set_number_item")
+        if 'cancel_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
+        if 'validate_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("validate_cart")
+        if 'view_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("view_shopping_cart")
+        if 'remove_item_from_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("remove_item_from_cart")
+        if 'set_number_item' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("set_number_item")
+        if 'get_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_shopping_cart")
+        if 'get_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_items_list")
         self.save()
+    
+    @karacos._db.ViewsProcessor.isview('self', 'javascript')
+    def _get_web_store_items_by_auth_(self,*args,**kw):
+        """
+        function(doc) {
+            if (doc.public_price, doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+                for (var auth in doc.ACL) {
+                    if (doc.ACL[auth].join().search(/w_browse/) != -1) {
+                        emit(auth,doc);
+                    }
+                }
+            }
+        }
+        """
+    
+    @karacos._db.isaction
+    def get_items_list(self):
+        ""
+        user = self.__domain__.get_user_auth()
         
+        keys = user['groups']
+        keys.append("user.%s" % user['name'])
+        results = self._get_web_store_items_by_auth_(*(), **{'keys':keys})
+        result = {'success': True, 
+                      'status': 'success',
+                      'data': []
+                      }
+        for item in results:
+            image = ''
+            if 'image' in item.value:
+                image = "/_atts/%s/%s" % (item.id,item.value['image'])
+            elif 'k_atts' in item.value:
+                for file in item.value['k_atts']:
+                    if item.value['k_atts'][file]['type'].startswith('image') and image == '':
+                        image = "/_atts/%s/%s" % (item.id,file)
+            result['data'].append({'id': item.id,
+                                   'name': item.value['name'],
+                                   'url': "%s/%s" % (self._get_action_url(),item.value['name']),
+                                   'description': item.value['content'],
+                                   'image': image,
+                                   'price': item.value['public_price'],
+                                   'title': item.value['title']
+                                   })
+        return result
+    
     @karacos._db.isaction
     def publish_node(self):
         self._publish_node()
-        return {'status':'success', 'message':_("L'Artiste est maintenant visible de tous")}
+        return {'status':'success', 'message':_("La boutique est maintenant visible de tous")}
+    publish_node.label = _("Publier article")
     
     def _get_open_cart_for_customer(self,customer_id):
         self.log.debug("BEGIN _get_open_cart_for_customer")
@@ -159,7 +212,13 @@ class Store(karacos.db['StoreParent']):
             
         result = self._get_open_carts_for_customer(customer_id)
         return result
-        
+    
+    @karacos._db.isaction
+    def calculate_shipping(self):
+        cart = self.__store__.get_open_cart_for_user()
+        result = {'success': True,
+                  'data': self._get_backoffice_node()._calculate_shipping(cart) } 
+        return result
     @karacos._db.isaction
     def view_shopping_cart(self):
         """
@@ -169,7 +228,10 @@ class Store(karacos.db['StoreParent']):
 
     @karacos._db.isaction
     def get_shopping_cart(self):
-        return {'success': True, 'status':'success','data':self.get_open_cart_for_user()._get_cart_array()}
+        result = {'success': True, 'status':'success',
+                  'data':self.get_open_cart_for_user()._get_cart_array()}
+        
+        return result
 
     @karacos._db.isaction
     def remove_item_from_cart(self,item_id=None):
@@ -214,11 +276,13 @@ class Store(karacos.db['StoreParent']):
          'notice': _("Nouvelle adresse de livraison"),
          'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
                  {'name':'destname', 'title':_('Nom du destinataire'),'dataType': 'TEXT'},
-                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
-                 {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
+                 {'name':'dest1stname', 'title':_('Nom du destinataire'),'dataType': 'TEXT'},
+                 {'name':'street_address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
+                 {'name':'street_address1', 'title':'street-address1','dataType': 'TEXT','formType': 'TEXTAREA'},
+                 {'name':'postal_code', 'title':'Code Postal','dataType': 'TEXT'},
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT'},
-                 {'name':'country-name', 'title':'Pays','dataType': 'TEXT'},
+                 {'name':'country', 'title':'Pays','dataType': 'TEXT'},
                  {'name':'new-adr','dataType': 'HIDDEN', 'value': 'Ajouter'},
                  ] }
         if 'adrs' in user:
@@ -229,13 +293,15 @@ class Store(karacos.db['StoreParent']):
                        'fields': [{'name':'use-adr','dataType': 'HIDDEN', 'value': 'Utiliser'}] }
             adrsfield = {'name':'label', 'title':'Choisissez une adresse','dataType': 'TEXT', 'formType':'RADIO', 'values': []}
             for adr in user['adrs'].keys() :
-                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
                                      user['adrs'][adr]['destname'],
-                                     user['adrs'][adr]['street-address'],
-                                     user['adrs'][adr]['postal-code'],
+                                     user['adrs'][adr]['dest1stname'],
+                                     user['adrs'][adr]['street_address'],
+                                     user['adrs'][adr]['street_address1'],
+                                     user['adrs'][adr]['postal_code'],
                                      user['adrs'][adr]['locality'],
                                      user['adrs'][adr]['region'],
-                                     user['adrs'][adr]['country-name'])
+                                     user['adrs'][adr]['country'])
                 adrsfield['values'].append({'value':adr,'label':fieldlabel})
                 
             adrform['fields'].append(adrsfield)
@@ -246,7 +312,24 @@ class Store(karacos.db['StoreParent']):
             result = form
         return result
     
-    
+    @karacos._db.isaction
+    def get_user_adresses(self):
+        user = self.__domain__._get_person_data()
+        result = {'data': []}
+        if 'adrs' in user:
+            c = 0
+            for adr_label in user['adrs']:
+                adr_record = user['adrs'][adr_label]
+                adr_record['label'] = adr_label
+                adr_record['id'] = c
+                result['data'].append(adr_record)
+                c = c + 1
+        result['success'] = True
+        result['status'] = 'success'
+        result['total'] = len(result['data'])
+        result['message'] = "%s results found" % result['total']
+        return result
+                
     def _add_billing_adr_form(self):
         #userojb = karacos.serving.get_session().get_user_auth()
         user = self.__domain__._get_person_data()
@@ -256,12 +339,13 @@ class Store(karacos.db['StoreParent']):
          'notice': _("Nouvelle adresse de facturation"),
          'fields': [{'name':'label', 'title':'Libelle','dataType': 'TEXT'},
                     {'name':'destname', 'title':_('Nom du destinataire'),'dataType': 'TEXT'},
-                 {'name':'street-address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
-                 {'name':'postal-code', 'title':'Code Postal','dataType': 'TEXT'},
+                 {'name':'street_address', 'title':'street-address','dataType': 'TEXT','formType': 'TEXTAREA'},
+                 {'name':'street_address1', 'title':'street-address1','dataType': 'TEXT','formType': 'TEXTAREA'},
+                 {'name':'postal_code', 'title':'Code Postal','dataType': 'TEXT'},
                  {'name':'locality', 'title':'Ville','dataType': 'TEXT'},
                  {'name':'region', 'title':'Etat','dataType': 'TEXT'},
-                 {'name':'country-name', 'title':'Pays','dataType': 'TEXT'},
-                 {'name':'new-adr','dataType': 'HIDDEN', 'value': 'Ajouter'},
+                 {'name':'country', 'title':'Pays','dataType': 'TEXT'},
+                 {'name':'new_adr','dataType': 'HIDDEN', 'value': 'Ajouter'},
                  ] }
         if 'adrs' in user:
             forms = []
@@ -273,13 +357,15 @@ class Store(karacos.db['StoreParent']):
             for adr in user['adrs'].keys() :
                 if 'destname' not in user['adrs'][adr]:
                     user['adrs'][adr]['destname'] = ""
-                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
+                fieldlabel = "%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s" % (adr,
                                      user['adrs'][adr]['destname'],
-                                     user['adrs'][adr]['street-address'],
-                                     user['adrs'][adr]['postal-code'],
+                                     user['adrs'][adr]['dest1stname'],
+                                     user['adrs'][adr]['street_address'],
+                                     user['adrs'][adr]['street_address1'],
+                                     user['adrs'][adr]['postal_code'],
                                      user['adrs'][adr]['locality'],
                                      user['adrs'][adr]['region'],
-                                     user['adrs'][adr]['country-name'])
+                                     user['adrs'][adr]['country'])
                 adrsfield['values'].append({'value':adr,'label':fieldlabel})
                 
             adrform['fields'].append(adrsfield)
@@ -299,26 +385,27 @@ class Store(karacos.db['StoreParent']):
         adr_type = '%s_adr' % adr_type
         label = kw['label']
         del kw['label']
+        useadr = False
+        if 'use_adr' in kw:
+            del kw['use_adr']
+            useadr = True
         if 'new-adr' in kw:
+            del kw['new-adr']
             if 'adrs' in user:
-                del kw['new-addr']
                 user['adrs'][label] = kw
             else:
                 user['adrs'] = {label:kw}
             user.save()
-            return
-        if 'use-adr' in kw:
-            del kw['use-adr']
+        if useadr:
             cart = self.get_open_cart_for_user()
-            cart[adr_type] = user['adrs'][label]
-            user.save()
+            cart[adr_type] = label #user['adrs'][label]
             cart.save()
-            return
     
     @karacos._db.isaction
     def add_cart_shipping(self,*args,**kw):
         user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'shipping',kw)
+        return {'success': True}
                 
     add_cart_shipping.get_form = _add_shipping_adr_form
     add_cart_shipping.label = _("Adresse de livraison")
@@ -327,6 +414,7 @@ class Store(karacos.db['StoreParent']):
     def add_cart_billing(self,*args,**kw):
         user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'billing',kw)
+        return {'success': True}
                 
     add_cart_billing.get_form = _add_billing_adr_form
     add_cart_billing.label = _("Adresse de Facturation")
@@ -357,7 +445,7 @@ class Store(karacos.db['StoreParent']):
             cart.save()
         cart._do_self_validation()
         self._get_backoffice_node()._validate_cart(cart)
-        return {'status':'success','data':cart,'datatype':'ShoppingCart'}
+        return {'status':'success','data':cart,'datatype':'ShoppingCart', 'success':True}
                 
     def _set_services_form(self):
         result = None
@@ -417,7 +505,7 @@ class Store(karacos.db['StoreParent']):
         self.save()
     
     set_services.get_form = _set_services_form
-    
+    set_services.label = _("Configure Services")
     def __get_services__(self):
         """
         """

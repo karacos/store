@@ -42,23 +42,34 @@ class ShoppingCart(karacos.db['Node']):
         self.save()
     
     @karacos._db.ViewsProcessor.isview('self','javascript')
-    def __get_items_array__(self,items):
-        """
+    def __get_cart_items_array__(self, store):
+        """//%s
         function(doc) {
-            parent_id = "%s"
-            items = %s
-            for (var i=0; i<= items.length; i++)
-                if (doc._id == items[i])
+            if ( doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true))
                     emit(doc._id, doc)
         }
         """
+      
     
     def _get_cart_array(self):
-        result = {'items':[],'total':0, 'net_total':0, 'tax_total':0}
-        for item in self.__get_items_array__(json.dumps(self['items'].keys())):
+                
+        result = {'items':[],'total':0, 'net_total':0, 'tax_total':0, 'total_weight': 0}
+        if 'validated' not in self:
+            try:
+                for item_key in self['items'].keys() :
+                    self.db[item_key]._do_cart_validation(self)
+                result['requires'] = 'billing'
+            except:
+                result['requires'] = 'shipping'
+        else:
+            result['requires'] = 'meet'
+        for item in self.__get_cart_items_array__(self.__store__.id,*(), **{'keys':self['items'].keys()}):
+            if 'weight' in item.value:
+                result['total_weight'] = result['total_weight'] + item.value['weight']
             if 'price' not in item.value and 'public_price' in item.value:
                 item.value['price'] = item.value['public_price']
-            result['items'].append({'name':item.value['name'],
+            result['items'].append({'id': item.id,
+                                    'name':item.value['name'],
                                          'title': item.value['title'],
                                             'tax':item.value['tax'],
                                             'price':item.value['price'],
@@ -70,11 +81,19 @@ class ShoppingCart(karacos.db['Node']):
             result['total'] = result['total'] + result['items'][-1]['total']
             result['tax_total'] = result['tax_total'] + result['items'][-1]['tax_total']
             result['net_total'] = result['net_total'] + result['items'][-1]['net_total']
+        if 'billing_adr' in self:
+            result['billing_adr'] = self['billing_adr']
+        if 'shipping_adr' in self:
+            result['shipping_adr'] = self['shipping_adr']
+            result['shipping'] = self.__store__._get_backoffice_node()._calculate_shipping(self)
+        else:
+            result['shipping'] = "Pas d'adresse de livraison..."
+        
         return result
      
     def _get_bill_data(self):
         result = {'items':{},'total':0, 'net_total':0, 'tax_total':0}
-        for item in self.__get_items_array__(json.dumps(self['items'].keys())):
+        for item in self.__get_cart_items_array__(self.__store__.id,*(), **{'keys':self['items'].keys()}):
             if 'price' not in item.value and 'public_price' in item.value:
                 item.value['price'] = item.value['public_price']
             result['items'][item.key] = {'name':item.value['name'],
@@ -88,6 +107,10 @@ class ShoppingCart(karacos.db['Node']):
             result['total'] = result['total'] + result['items'][item.key]['total']
             result['tax_total'] = result['tax_total'] + result['items'][item.key]['tax_total']
             result['net_total'] = result['net_total'] + result['items'][item.key]['net_total']
+        if 'billing_adr' in self:
+            result['billing_adr'] = self['billing_adr']
+        if 'shipping_adr' in self:
+            result['shipping_adr'] = self['shipping_adr']
         return result
     
     def _do_self_validation(self):
@@ -141,7 +164,7 @@ class ShoppingCart(karacos.db['Node']):
         self.log.debug("_create_payment START")
         assert not self._has_active_payment()
         name = "%s" % uuid4().hex
-        data = {'name':name,'service': {'name':service['_name']} ,'status':'active'}
+        data = {'name':name, 'cart_id':self.id , 'service': {'name':service['_name']} ,'status':'active'}
         self._create_child_node(data=data,type='Payment')
         self.log.debug("Payment created with name '%s'" % name)
         self['status'] = 'process_pay'

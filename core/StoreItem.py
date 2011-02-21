@@ -32,12 +32,25 @@ class StoreItem(karacos.db['Resource']):
         assert isinstance(parent,karacos.db['StoreParent'])        
         karacos.db['Resource'].__init__(self,parent=parent,base=base,data=data)
         self.__store__ = parent.__store__
+        selfsave = False
+        if 'public_price' not in data:
+            self['public_price'] = None
+            selfsave = True
+        if 'store_id' not in self:
+            self['store_id'] = self.__store__.id
+            selfsave = True
+        if selfsave:
+            self.save()
     
     def _publish_node(self):
         karacos.db['Resource']._publish_node(self)
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_to_cart")
         self.save()
     
+    @karacos._db.isaction
+    def publish_node(self):
+        self._publish_node()
+        return {'status':'success', 'message':_("L'Article est maintenant visible de tous")}
     
     def _edit_storeitem_form(self):
         if 'content' not in self:

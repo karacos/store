@@ -73,7 +73,27 @@ class StoreBackOffice(karacos.db['WebNode']):
         item.save()
         del self['reserved'][item.id][cart.id]
         self.save()
+    
+    def _calculate_shipping(self,cart):
         
+        return 0
+    
+    def _item_payed(self,item,cart):
+        ""
+        assert isinstance(item, karacos.db['StoreItem'])
+        assert isinstance(cart, karacos.db['ShoppingCart'])
+        #assert 'item_stock' in self, 'No stock data'
+        #assert item.id in self['item_stock'], 'No stock registered for item'
+        #assert 'reserved' in self, 'No reserved parts'
+        #assert item.id in self['reserved'], 'No reservation for this item'
+        #assert cart.id in self['reserved'][item.id], 'item not reserved for this cart'
+        #assert self['reserved'][item.id][cart.id] == cart['items'][item.id], 'Inconsistent data'
+        #del self['reserved'][item.id][cart.id]
+        number = cart['items'][item.id]
+        item['stock'] = item['stock'] - number
+        item.save()
+        self.save()
+    
     def _reserved_payed(self,item,cart):
         ""
         assert isinstance(item, karacos.db['StoreItem'])

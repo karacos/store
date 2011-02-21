@@ -27,16 +27,28 @@ class HardItem(karacos.db['StoreItem']):
             data['WebType'] = 'HardItem'
         if 'buy_cost' in data:
             data['buy_cost'] = int(data['buy_cost'])
+        else:
+            data['buy_cost'] = 0
         if 'min_sell_price' in data:
             data['min_sell_price'] = int(data['min_sell_price'])
-        if 'min_sell_price' in data:
-            data['min_sell_price'] = int(data['min_sell_price'])
+        else:
+            data['min_sell_price'] = 0
         if 'public_price' in data:
             data['public_price'] = int(data['public_price'])
+        else:
+            data['public_price'] = 0
         if 'tax' in data:
             data['tax'] = int(data['tax'])
+        else:
+            data['tax'] = 0
+        if 'weight' in data:
+            data['weight'] = int(data['weight'])
+        else:
+            data['weight'] = 0
         if 'stock' in data:
             data['stock'] = int(data['stock'])
+        else:
+            data['stock'] = 0
         result = karacos.db['StoreItem'].create(parent=parent,base=base,data=data)
 
         return result
@@ -45,7 +57,7 @@ class HardItem(karacos.db['StoreItem']):
         return self['stock']
     
     @karacos._db.isaction
-    def edit_item(self,title=None,content=None,buy_cost=None, min_sell_price=None, public_price=None, tax=None, stock=None):
+    def edit_item(self,title=None,content=None,buy_cost=None, weight=None, min_sell_price=None, public_price=None, tax=None, stock=None):
         ""
         self['title'] = title
         self['content'] = content
@@ -53,6 +65,7 @@ class HardItem(karacos.db['StoreItem']):
         self['min_sell_price'] = int(min_sell_price)
         self['public_price'] = int(public_price)
         self['tax'] = int(tax)
+        self['weight'] = int(weight)
         self['stock'] = int(stock)
         self.save()
         
@@ -65,6 +78,8 @@ class HardItem(karacos.db['StoreItem']):
             self['content'] = ""
         if 'buy_cost' not in self:
             self['buy_cost'] = 0
+        if 'weight' not in self:
+            self['weight'] = 0
         if 'min_sell_price' not in self:
             self['min_sell_price'] = 0
         if 'public_price' not in self:
@@ -81,6 +96,7 @@ class HardItem(karacos.db['StoreItem']):
                  {'name':'public_price', 'title':'Prix Hors Taxes','dataType': 'TEXT', 'value': self['public_price']},
                  {'name':'min_sell_price', 'title':'Prix Mini Hors Taxes','dataType': 'TEXT', 'value': self['min_sell_price']},
                  {'name':'buy_cost', 'title':'Prix Mini Hors Taxes','dataType': 'TEXT', 'value': self['buy_cost']},
+                 {'name':'weight', 'title':'Poids','dataType': 'TEXT', 'value': self['weight']},
                  {'name':'stock', 'title':'Prix Mini Hors Taxes','dataType': 'TEXT', 'value': self['stock']},
                  {'name':'tax', 'title':'Valeur taxe (% du prix)','dataType': 'TEXT', 'value': self['tax']}
                  ] }
@@ -98,7 +114,7 @@ class HardItem(karacos.db['StoreItem']):
     def _do_add_validation(self,cart,number):
         """
         """
-        assert number <= self['stock'], _("Stock insuffisant")
+        #assert number <= self['stock'], _("Stock insuffisant")
     
     def _do_cart_validation(self,cart):
         """
@@ -109,16 +125,22 @@ class HardItem(karacos.db['StoreItem']):
             raise karacos.http.DataRequired("Validate shipping","","/%s?method=validate_cart"%self.__store__.get_relative_uri(),self.__store__,self.__store__.add_cart_shipping)
         # Number of this item odered
         #cart_number = cart['items'][self.id]
-        self.__bo_node__._reserve_item(self, cart)
+        #self.__bo_node__._reserve_item(self, cart)
     
     def _do_cart_processing(self,cart):
         """
         When cart is payed
         """
-        self.__bo_node__._reserved_payed(self, cart)
+        number = cart['items'][item.id]
+        if number >= self['stock']:
+            self['stock'] = 0
+        else:
+            self['stock'] = self['stock'] - number
+        self.save()
+        #self.__bo_node__._item_payed(self, cart)
         
     def _do_cart_cancel(self,cart):
         """
         When cart is cancelled, or payement failure
         """
-        self.__bo_node__._reserved_cancel(self, cart)
+        #self.__bo_node__._reserved_cancel(self, cart)
