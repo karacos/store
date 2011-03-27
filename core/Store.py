@@ -98,7 +98,7 @@ class Store(karacos.db['StoreParent']):
     def get_items_list(self):
         ""
         user = self.__domain__.get_user_auth()
-        
+        cart = self.get_open_cart_for_user()
         keys = user['groups']
         keys.append("user.%s" % user['name'])
         results = self._get_web_store_items_by_auth_(*(), **{'keys':keys})
@@ -114,14 +114,28 @@ class Store(karacos.db['StoreParent']):
                 for file in item.value['k_atts']:
                     if item.value['k_atts'][file]['type'].startswith('image') and image == '':
                         image = "/_atts/%s/%s" % (item.id,file)
-            result['data'].append({'id': item.id,
-                                   'name': item.value['name'],
-                                   'url': "%s/%s" % (self._get_action_url(),item.value['name']),
-                                   'description': item.value['content'],
-                                   'image': image,
-                                   'price': item.value['public_price'],
-                                   'title': item.value['title']
-                                   })
+            price = 0
+            if 'public_price' in item.value:
+                price = item.value['public_price']
+            if 'content' in item.value and 'title' in item.value:
+                description = ""
+                if 'description' not in item.value:
+                    description = item.value['content']
+                else:
+                    description = item.value['description']
+                number = 0
+                if item.id in cart['items']:
+                    number = cart['items'][item.id]
+                result['data'].append({'id': item.id,
+                                       'name': item.value['name'],
+                                       'url': "%s/%s" % (self._get_action_url(),item.value['name']),
+                                       'store_url': self._get_action_url(),
+                                       'description': description,
+                                       'image': image,
+                                       'price': price,
+                                       'number': number,
+                                       'title': item.value['title']
+                                       })
         return result
     
     @karacos._db.isaction
@@ -224,11 +238,12 @@ class Store(karacos.db['StoreParent']):
         """
         """
         #person = self.__domain__._get_person_data()
-        return {'status':'success','data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
+        return {'status':'success', 'store_url': self._get_action_url(),'data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
 
     @karacos._db.isaction
     def get_shopping_cart(self):
         result = {'success': True, 'status':'success',
+                  'store_url': self._get_action_url(),
                   'data':self.get_open_cart_for_user()._get_cart_array()}
         
         return result
@@ -251,12 +266,9 @@ class Store(karacos.db['StoreParent']):
         sets a new number of given items in shopping Cart
         """
         cart = self.get_open_cart_for_user()
-        if item_id in cart['items']:
-            cart['items'][item_id] = int(number)
-            cart.save()
-            return {'status' :'success', 'message':_("item modifie avec succes")}
-        else:
-            return {'status' :'failure', 'message': _("'l'item ne fait pas partie du panier")}
+        cart['items'][item_id] = int(number)
+        cart.save()
+        return {'status' :'success', 'message':_("item modifie avec succes")}
         
     
     @karacos._db.isaction
@@ -322,6 +334,7 @@ class Store(karacos.db['StoreParent']):
                 adr_record = user['adrs'][adr_label]
                 adr_record['label'] = adr_label
                 adr_record['id'] = c
+                adr_record['user_id'] = user.id
                 result['data'].append(adr_record)
                 c = c + 1
         result['success'] = True
@@ -376,6 +389,21 @@ class Store(karacos.db['StoreParent']):
             result = form
         return result
     
+    @karacos._db.isaction
+    def set_adr(self,*args,**kw):
+        """
+        """
+        user = self.__domain__._get_person_data()
+        if 'use_adr' in kw:
+            del kw['use_adr']
+        if 'new-adr' in kw:
+            del kw['new-adr']
+        if 'adrs' in user:
+            user['adrs'][label] = kw
+        else:
+            user['adrs'] = {label:kw}
+        user.save()
+        
     def add_cart_adr(self,user,adr_type,kw):
         """
          Add an address to shopping Cart

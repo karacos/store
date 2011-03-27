@@ -53,7 +53,7 @@ class ShoppingCart(karacos.db['Node']):
     
     def _get_cart_array(self):
                 
-        result = {'items':[],'total':0, 'net_total':0, 'tax_total':0, 'total_weight': 0}
+        result = {'items':[],'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0}
         if 'validated' not in self:
             try:
                 for item_key in self['items'].keys() :
@@ -64,23 +64,26 @@ class ShoppingCart(karacos.db['Node']):
         else:
             result['requires'] = 'meet'
         for item in self.__get_cart_items_array__(self.__store__.id,*(), **{'keys':self['items'].keys()}):
-            if 'weight' in item.value:
-                result['total_weight'] = result['total_weight'] + item.value['weight']
-            if 'price' not in item.value and 'public_price' in item.value:
-                item.value['price'] = item.value['public_price']
-            result['items'].append({'id': item.id,
-                                    'name':item.value['name'],
-                                         'title': item.value['title'],
-                                            'tax':item.value['tax'],
-                                            'price':item.value['price'],
-                                            'net_price': item.value['price'] + item.value['tax'] * item.value['price'],
-                                            'number':self['items'][item.key],
-                                            'total': item.value['price'] * self['items'][item.key],
-                                            'tax_total': item.value['tax'] * item.value['price'] * self['items'][item.key],
-                                            'net_total': (item.value['price'] + item.value['tax'] * item.value['price']) * self['items'][item.key]})
-            result['total'] = result['total'] + result['items'][-1]['total']
-            result['tax_total'] = result['tax_total'] + result['items'][-1]['tax_total']
-            result['net_total'] = result['net_total'] + result['items'][-1]['net_total']
+            try:
+                if 'weight' in item.value:
+                    result['cart_total_weight'] = result['cart_total_weight'] + item.value['weight']
+                if 'price' not in item.value and 'public_price' in item.value:
+                    item.value['price'] = int(item.value['public_price'])
+                result['items'].append({'id': item.id,
+                                        'name':item.value['name'],
+                                             'title': item.value['title'],
+                                                'tax':item.value['tax'],
+                                                'price':int(item.value['price']),
+                                                'net_price': item.value['price'] + item.value['tax'] * item.value['price'],
+                                                'number':self['items'][item.key],
+                                                'total': item.value['price'] * self['items'][item.key],
+                                                'tax_total': item.value['tax'] * item.value['price'] * self['items'][item.key],
+                                                'net_total': (item.value['price'] + item.value['tax'] * item.value['price']) * self['items'][item.key]})
+                result['cart_total'] = result['cart_total'] + result['items'][-1]['total']
+                result['cart_tax_total'] = result['cart_tax_total'] + result['items'][-1]['tax_total']
+                result['cart_net_total'] = result['cart_net_total'] + result['items'][-1]['net_total']
+            except:
+                pass
         if 'billing_adr' in self:
             result['billing_adr'] = self['billing_adr']
         if 'shipping_adr' in self:
