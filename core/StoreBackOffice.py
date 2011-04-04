@@ -32,6 +32,35 @@ class StoreBackOffice(karacos.db['WebNode']):
     def rename(self):
         assert False, "Rename backoffice is not allowed"
     
+    @karacos._db.isaction
+    def set_shipping_rates(self,country="France",weight=None,price=None):
+        """
+        
+        """
+        if 'shipping_rates' not in self:
+            self['shipping_rates'] = {country: {weight:price}}
+        else:
+            if country not in self['shipping_rates']:
+                self['shipping_rates'][country] = {weight:price}
+            else:
+                self['shipping_rates'][country][weight] = price
+            
+        self.save()
+    
+    def _get_shipping_rates(self):
+        if 'shipping_rates' not in self:
+            self['shipping_rates'] = {}
+        self.save()
+        result = []
+        for country in self['shipping_rates'].keys():
+            for weight in self['shipping_rates'][country].keys():
+                result.append({'country': country, 'weight': weight, 'price': self['shipping_rates'][country][weight]})
+        return result
+    
+    @karacos._db.isaction
+    def get_shipping_rates(self):
+        return {'success': True, 'data': self._get_shipping_rates()}
+    
     def _get_transactions_node(self):
         if '_transactions' not in self['childrens']:
             data = {'name':'_transactions'}
@@ -75,8 +104,16 @@ class StoreBackOffice(karacos.db['WebNode']):
         self.save()
     
     def _calculate_shipping(self,cart):
+        assert "shipping_rates" in self, "No shipping rates set for this store"
+        assert cart._get_shipping_adr()['country'] in self['shipping_rates']
+        wkeys = self['shipping_rates'][country].keys().sort()
+        swkeys = [] + wkeys
         
-        return 0
+        wkeys.append(cart._get_cart_array()['cart_total_weight'])
+        wkeys.sort()
+        indexweight = swkeys[wkeys.index(cart._get_cart_array()['cart_total_weight'])]
+        
+        return self['shipping_rates'][country][indexweight]
     
     def _item_payed(self,item,cart):
         ""

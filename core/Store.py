@@ -36,6 +36,16 @@ class Store(karacos.db['StoreParent']):
             data['WebType'] = 'Store'
         return karacos.db['WebNode'].create(parent=parent,base=base,data=data)
 
+    def _get_customers_group(self):
+        self._update_item()
+        if '__customers_group__' not in dir(self):
+            name = 'customers@%s' % self['name']
+            if name not in self.__domain__._get_groups_node().__childrens__:
+                self.__customers_group__ = self.__domain__._create_group(name, False)
+            else:
+                self.__customers_group__ = self.__domain__._get_groups_node().__childrens__[name]
+        return self.__customers_group__ 
+
     @karacos._db.isaction
     def create_bo_node(self, type='StoreBackOffice'):
         assert issubclass(karacos.db[type], karacos.db['StoreBackOffice']), _("Type is not StoreBackOffice subclass")
@@ -78,7 +88,28 @@ class Store(karacos.db['StoreParent']):
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_shopping_cart")
         if 'get_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_items_list")
+        
+        custgrpname = 'group.customers@%s' % self.__domain__['name']
+        if custgrpname not in self['ACL']:
+            self['ACL'][custgrpname] = ['calculate_shipping',
+                                        'add_cart_shipping',
+                                        'add_cart_billing',
+                                        'pay_cart',
+                                        'pay_callback']
+        
+        if 'calculate_shipping' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("calculate_shipping")
+        if 'add_cart_shipping' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("add_cart_shipping")
+        if 'add_cart_billing' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("add_cart_billing")
+        if 'pay_cart' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("pay_cart")
+        if 'pay_callback' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("pay_callback")
+        
         self.save()
+        
     
     @karacos._db.ViewsProcessor.isview('self', 'javascript')
     def _get_web_store_items_by_auth_(self,*args,**kw):
@@ -142,7 +173,7 @@ class Store(karacos.db['StoreParent']):
     def publish_node(self):
         self._publish_node()
         return {'status':'success', 'message':_("La boutique est maintenant visible de tous")}
-    publish_node.label = _("Publier article")
+    publish_node.label = _("Publier boutique")
     
     def _get_open_cart_for_customer(self,customer_id):
         self.log.debug("BEGIN _get_open_cart_for_customer")
@@ -192,6 +223,8 @@ class Store(karacos.db['StoreParent']):
     def get_open_cart_for_user(self):
         ""
         user = self.__domain__.get_user_auth()
+        if self.__domain__.is_user_authenticated() and not self._get_customers_group().is_member(user):
+            self._get_customers_group().add_user(user)
         cart = None
         customer_id = ''
         session = karacos.serving.get_session()
@@ -230,8 +263,9 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def calculate_shipping(self):
         cart = self.__store__.get_open_cart_for_user()
+        cart['shipping'] = self._get_backoffice_node()._calculate_shipping(cart)
         result = {'success': True,
-                  'data': self._get_backoffice_node()._calculate_shipping(cart) } 
+                  'data': {'shipping': cart['shipping']  }} 
         return result
     @karacos._db.isaction
     def view_shopping_cart(self):
@@ -396,8 +430,8 @@ class Store(karacos.db['StoreParent']):
         user = self.__domain__._get_person_data()
         if 'use_adr' in kw:
             del kw['use_adr']
-        if 'new-adr' in kw:
-            del kw['new-adr']
+        if 'new_adr' in kw:
+            del kw['new_adr']
         if 'adrs' in user:
             user['adrs'][label] = kw
         else:
@@ -417,13 +451,14 @@ class Store(karacos.db['StoreParent']):
         if 'use_adr' in kw:
             del kw['use_adr']
             useadr = True
-        if 'new-adr' in kw:
-            del kw['new-adr']
+            user['adrs'][label] = kw
+        if 'new_adr' in kw:
+            del kw['new_adr']
             if 'adrs' in user:
                 user['adrs'][label] = kw
             else:
                 user['adrs'] = {label:kw}
-            user.save()
+        user.save()
         if useadr:
             cart = self.get_open_cart_for_user()
             cart[adr_type] = label #user['adrs'][label]
@@ -446,6 +481,7 @@ class Store(karacos.db['StoreParent']):
                 
     add_cart_billing.get_form = _add_billing_adr_form
     add_cart_billing.label = _("Adresse de Facturation")
+    
     
     @karacos._db.isaction
     def validate_cart(self):

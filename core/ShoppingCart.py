@@ -116,6 +116,17 @@ class ShoppingCart(karacos.db['Node']):
             result['shipping_adr'] = self['shipping_adr']
         return result
     
+    def _get_shipping_adr(self):
+        """
+        """
+        if 'billing_adr' not in self:
+            return None
+        
+        if self['customer_id'].find("anonymous") < 0:
+            return None
+        user = self.__domain__.db[self['customer_id']]
+        return user['adrs'][self['billing_adr']]
+    
     def _do_self_validation(self):
         """
         Check if enough data in cart (regarding each item requirement)
