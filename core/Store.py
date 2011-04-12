@@ -263,10 +263,11 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def calculate_shipping(self):
         cart = self.__store__.get_open_cart_for_user()
-        cart['shipping'] = self._get_backoffice_node()._calculate_shipping(cart)
-        result = {'success': True,
-                  'data': {'shipping': cart['shipping']  }} 
-        return result
+        
+        return {'status': 'success',
+                'success': True,
+                'data':  self._get_backoffice_node()._calculate_shipping(cart) } 
+        
     @karacos._db.isaction
     def view_shopping_cart(self):
         """
@@ -463,6 +464,7 @@ class Store(karacos.db['StoreParent']):
             cart = self.get_open_cart_for_user()
             cart[adr_type] = label #user['adrs'][label]
             cart.save()
+        return user['adrs'][label]
     
     @karacos._db.isaction
     def add_cart_shipping(self,*args,**kw):
@@ -476,8 +478,8 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def add_cart_billing(self,*args,**kw):
         user = self.__domain__._get_person_data()
-        self.add_cart_adr(user,'billing',kw)
-        return {'success': True}
+        
+        return {'success': True, 'data': self.add_cart_adr(user,'billing',kw)}
                 
     add_cart_billing.get_form = _add_billing_adr_form
     add_cart_billing.label = _("Adresse de Facturation")
@@ -498,8 +500,9 @@ class Store(karacos.db['StoreParent']):
             cart = self.get_open_cart_for_user()
             session['cart_id'] = cart.id
         if not self.__domain__.is_user_authenticated():
-            raise karacos.http.WebAuthRequired(self.__domain__,
-                                               backlink="/%s/validate_cart"%self.get_relative_uri())
+            return {'success': False, 'error':'User should be authenticated'}
+#            raise karacos.http.WebAuthRequired(self.__domain__,
+#                                               backlink="/%s/validate_cart"%self.get_relative_uri())
         user = self.__domain__.get_user_auth()
         if user.id != cart['customer_id']:
             assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")
@@ -507,8 +510,11 @@ class Store(karacos.db['StoreParent']):
                 self.cancel_shopping_cart()
             cart['customer_id'] = user.id
             cart.save()
-        cart._do_self_validation()
-        self._get_backoffice_node()._validate_cart(cart)
+        try:
+            cart._do_self_validation()
+            self._get_backoffice_node()._validate_cart(cart)
+        except:
+            return {'success': False, 'error':'Cart not validated'}
         return {'status':'success','data':cart,'datatype':'ShoppingCart', 'success':True}
                 
     def _set_services_form(self):

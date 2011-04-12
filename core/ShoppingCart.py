@@ -66,7 +66,7 @@ class ShoppingCart(karacos.db['Node']):
         for item in self.__get_cart_items_array__(self.__store__.id,*(), **{'keys':self['items'].keys()}):
             try:
                 if 'weight' in item.value:
-                    result['cart_total_weight'] = result['cart_total_weight'] + item.value['weight']
+                    result['cart_total_weight'] = result['cart_total_weight'] + item.value['weight'] * self['items'][item.key]
                 if 'price' not in item.value and 'public_price' in item.value:
                     item.value['price'] = int(item.value['public_price'])
                 result['items'].append({'id': item.id,
@@ -86,9 +86,11 @@ class ShoppingCart(karacos.db['Node']):
                 pass
         if 'billing_adr' in self:
             result['billing_adr'] = self['billing_adr']
+            result['billing_adress'] = self._get_billing_adr()
         if 'shipping_adr' in self:
             result['shipping_adr'] = self['shipping_adr']
-            result['shipping'] = self.__store__._get_backoffice_node()._calculate_shipping(self)
+            result['shipping_adress'] = self._get_shipping_adr()
+            result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'],result['cart_total_weight'])
         else:
             result['shipping'] = "Pas d'adresse de livraison..."
         
@@ -116,16 +118,30 @@ class ShoppingCart(karacos.db['Node']):
             result['shipping_adr'] = self['shipping_adr']
         return result
     
-    def _get_shipping_adr(self):
+    def _get_billing_adr(self):
         """
         """
         if 'billing_adr' not in self:
             return None
         
-        if self['customer_id'].find("anonymous") < 0:
+        if self['customer_id'].find("anonymous") >= 0:
             return None
         user = self.__domain__.db[self['customer_id']]
-        return user['adrs'][self['billing_adr']]
+        userdata = self.__domain__._get_person_data_user(user)
+        return userdata['adrs'][self['billing_adr']]
+    
+    
+    def _get_shipping_adr(self):
+        """
+        """
+        if 'shipping_adr' not in self:
+            return None
+        
+        if self['customer_id'].find("anonymous") >= 0:
+            return None
+        user = self.__domain__.db[self['customer_id']]
+        userdata = self.__domain__._get_person_data_user(user)
+        return userdata['adrs'][self['shipping_adr']]
     
     def _do_self_validation(self):
         """

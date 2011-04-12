@@ -37,6 +37,8 @@ class StoreBackOffice(karacos.db['WebNode']):
         """
         
         """
+        weight = int(weight)
+        price = int(price)
         if 'shipping_rates' not in self:
             self['shipping_rates'] = {country: {weight:price}}
         else:
@@ -46,6 +48,7 @@ class StoreBackOffice(karacos.db['WebNode']):
                 self['shipping_rates'][country][weight] = price
             
         self.save()
+        return {'success': True}
     
     def _get_shipping_rates(self):
         if 'shipping_rates' not in self:
@@ -106,14 +109,20 @@ class StoreBackOffice(karacos.db['WebNode']):
     def _calculate_shipping(self,cart):
         assert "shipping_rates" in self, "No shipping rates set for this store"
         assert cart._get_shipping_adr()['country'] in self['shipping_rates']
-        wkeys = self['shipping_rates'][country].keys().sort()
-        swkeys = [] + wkeys
+        return { 'shipping': cart._get_cart_array()['shipping'], 'adress' : cart._get_shipping_adr()}
         
-        wkeys.append(cart._get_cart_array()['cart_total_weight'])
+    def _get_shipping_rate(self,country,weight):
+        wkeys = map(int,self['shipping_rates'][country].keys())
         wkeys.sort()
-        indexweight = swkeys[wkeys.index(cart._get_cart_array()['cart_total_weight'])]
+        swkeys = [] + wkeys
+        wkeys.append(weight)
+        wkeys.sort()
+        indexkey = wkeys.index(weight) 
+        if indexkey >= len(swkeys):
+            indexkey = indexkey -1
         
-        return self['shipping_rates'][country][indexweight]
+        indexweight = swkeys[indexkey]
+        return self['shipping_rates'][country][str(indexweight)]
     
     def _item_payed(self,item,cart):
         ""

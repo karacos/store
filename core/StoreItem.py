@@ -42,15 +42,23 @@ class StoreItem(karacos.db['Resource']):
         if selfsave:
             self.save()
     
+    def _is_sell_open(self):
+        if 'sell_open' not in self:
+            self['sell_open'] = False
+            self.save()
+        return self['sell_open']
+        
+    
     def _publish_node(self):
         karacos.db['Resource']._publish_node(self)
         self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_to_cart")
+        self['sell_open'] = True
         self.save()
     
     @karacos._db.isaction
     def publish_node(self):
         self._publish_node()
-        return {'status':'success', 'message':_("L'Article est maintenant visible de tous")}
+        return {'status':'success', 'message':_("L'Article est maintenant visible de tous"), 'success': True}
     
     def _edit_storeitem_form(self):
         if 'content' not in self:
