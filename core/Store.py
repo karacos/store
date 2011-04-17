@@ -9,7 +9,7 @@ __author__="Nicolas Karageuzian"
 __contributors__ = []
 
 from uuid import uuid4
-import sys
+import os, sys
 import karacos
 
 class Store(karacos.db['StoreParent']):
@@ -27,6 +27,15 @@ class Store(karacos.db['StoreParent']):
             self['stylesheets'] = []
         if 'store' not in self['stylesheets']:
             self['stylesheets'].append("store")
+        staticdirname = os.path.join(karacos.apps['store'].__path__[0],'resources','static')
+        self.__domain__['staticdirs']['_store'] = staticdirname
+        store_templatesdir = os.path.join(karacos.apps['store'].__path__[0],'resources','templates')
+        if 'templatesdirs' not in self.__domain__:
+            self.__domain__['templatesdirs'] = [store_templatesdir]
+        if store_templatesdir not in self.__domain__['templatesdirs']:
+            self.__domain__['templatesdirs'].append(store_templatesdir)
+        self.__domain__.save()
+        self.__domain__.init_lookup()
     
     @staticmethod
     def create(parent=None, base=None,data=None):
@@ -519,7 +528,7 @@ class Store(karacos.db['StoreParent']):
                 
     def _set_services_form(self):
         result = None
-        form = {'title': _("Service"),
+        form = {'title': _("Ajouter un service de paiement"),
          'submit': _('Ajouter'),
          'fields': [{'name':'svc_name', 'title':'Nom du service','dataType': 'TEXT'},
                  ] }
@@ -536,10 +545,8 @@ class Store(karacos.db['StoreParent']):
                     self.set_paypal_express_conf()
                     self.set_paypal_express_form(confform)
                 forms.append(confform)
-            forms.append(form)
-            result = forms
-        else:
-            result = form
+        forms.append(form)
+        result = forms
         return result
     
     def set_paypal_express_form(self,form):

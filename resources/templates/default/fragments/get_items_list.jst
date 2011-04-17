@@ -1,0 +1,35 @@
+<% user_auth = instance.__domain__.get_user_auth() %>
+<% isstaff = 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups'] %>
+{.section data}
+{.repeated section @}
+<article class="karacos_store_item">
+    <h3><a href="{url}">{title}</a></h3>
+    <div class="store_item">
+        <div class="store_item_content" typeof="karacos:StoreItem" about="urn:uuid:{id}" url="{url}" name="{name}">
+            <div class="img_holder"><a href="{url}"><img src="{image}"/></a></div>
+            <section property="description">{description}</section>
+            <div class="store_item_data">
+                % if isstaff:
+                    <div property="title">{title}</div>
+                % endif
+	            <div class="price_holder"><span property="price">{price|fprice}</span> Euro</div>
+            </div>
+        </div>
+       
+        <div class="store_item_actions">
+            <div class="add_to_cart_panel" typeof="karacos:method" about="urn:uuid:{id}:set_number_item" url="{store_url}">
+                <div style="display: none" property="item_id">{id}</div>
+                <div class="item_cart_control">
+                    <div><div class="inc_number"/></div>
+                    <div class="item_number">Quantité : <span  property="number" class="item_cart_number">{number}</span></div>
+                    <div><div class="dec_number"/></div>
+                </div>
+            </div>
+       </div>
+    </div>
+</article>
+{.end}
+
+{.or}
+  <p><em>(No items)</em></p>
+{.end}

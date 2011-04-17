@@ -50,6 +50,14 @@ class ShoppingCart(karacos.db['Node']):
         }
         """
       
+    @karacos._db.ViewsProcessor.isview('self','javascript')
+    def __get_cart_items_array__(self, store):
+        """//%s
+        function(doc) {
+            if ( doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true))
+                    emit(doc._id, doc)
+        }
+        """
     
     def _get_cart_array(self):
                 
@@ -69,12 +77,13 @@ class ShoppingCart(karacos.db['Node']):
                     result['cart_total_weight'] = result['cart_total_weight'] + item.value['weight'] * self['items'][item.key]
                 if 'price' not in item.value and 'public_price' in item.value:
                     item.value['price'] = int(item.value['public_price'])
-                result['items'].append({'id': item.id,
+                result['items'].append({'id': item.value['_id'],
                                         'name':item.value['name'],
                                              'title': item.value['title'],
                                                 'tax':item.value['tax'],
                                                 'price':int(item.value['price']),
                                                 'net_price': item.value['price'] + item.value['tax'] * item.value['price'],
+                                                'weight': item.value['weight'],
                                                 'number':self['items'][item.key],
                                                 'total': item.value['price'] * self['items'][item.key],
                                                 'tax_total': item.value['tax'] * item.value['price'] * self['items'][item.key],
@@ -202,7 +211,7 @@ class ShoppingCart(karacos.db['Node']):
         self.save()
         session = karacos.serving.get_session()
         del session['cart_id']
-        result  = self.__childrens__[name]
+        result  = self.db[self['childrens'][name]]
         self.__store__._get_backoffice_node()._set_payment_created(self,result)
         return result
     

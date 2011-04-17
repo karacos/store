@@ -1,0 +1,57 @@
+<div id="store_backoffice">
+<% set_shipping_rates_form = False %>
+<% import sys, traceback %>
+
+<% actions = instance._get_user_actions_forms() %>
+
+% try:
+	<div id="store_backoffice_actions">
+		<ul>
+			<li><a href="/fragment/backoffice_payment_services?store_id=${instance.__store__.id}&base_id=${instance.__store__['base_id']}">Store Payment Services</a></li>
+		% for action in actions['actions']:
+		% if action['action'] == 'get_shipping_rates':
+			<li><a href="/fragment/backoffice_shipping_rates?office_id=${instance.id}&base_id=${instance['base_id']}">Shipping rates</a></li>
+		% endif
+		%if action['action'] == 'set_shipping_rates':
+			<% set_shipping_rates_form = True %>
+		% endif
+		%endfor
+		</ul>
+	<div>
+	</div>
+	</div>
+	
+	% if set_shipping_rates_form:
+		<div id="set_shipping_rates_form" style="display:none">
+		<!-- Dialog for set_shipping_rates -->
+		</div>
+	% endif
+
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry
+</div>
+<script language="javascript">
+KaraCos(function() {
+	KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
+	KaraCos.Store.office = {
+		id: '${instance.id}',
+		db: '${instance['base_id']}'
+	};
+	jQuery.ajax({
+			url:'/_store/js/backoffice-ui.js',
+			async: true,
+			dataType: 'script',
+			success: function() { 
+				
+			}
+		});
+	});
+</script>

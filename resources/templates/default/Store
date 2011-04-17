@@ -1,0 +1,14 @@
+<% user_auth = instance.__domain__.get_user_auth() %>
+<% isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name'] %>
+## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups'] %>
+
+<div id="node_menu">
+<ul>
+	% if isstaff:
+	<li><a href="${instance._get_action_url()}/_backoffice">Back Office</a></li>
+	% endif
+</ul>
+</div>
+<div id="StoreContent" typeOf="karacos:Store" about="urn:uuid:${instance.id}" url="${instance._get_action_url()}">
+    <script language="javascript" src="/fragment/Store.js?store_id=${instance.id}&base_id=${instance['base_id']}"></script>
+</div>

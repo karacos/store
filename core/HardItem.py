@@ -132,7 +132,7 @@ class HardItem(karacos.db['StoreItem']):
         """
         When cart is payed
         """
-        number = cart['items'][item.id]
+        number = cart['items'][self.id]
         if number >= self['stock']:
             self['stock'] = 0
         else:

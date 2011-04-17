@@ -1,0 +1,52 @@
+{.section form}
+<h3>{label}</h3>
+<div id="karacos_adress_accordion">
+	<h3 id="kc_add_ard_section">Ajouter une adresse</h3>
+	<div id="add_adr_form">
+		<form method="POST" action="{acturl}">
+			<div class="karacos_form">
+			
+				<input type="hidden" name="method" value="{action}"/>
+				<input type="hidden" name="new_adr" value="true"/>
+				<input type="hidden" name="use_adr" value="true"/>
+				<div class="field_line">
+					<div class="karacos_field_holder">&nbsp;</div>
+				</div>
+				
+				<div class="field_line">
+					<div class="karacos_field_holder"><div class="label">Libelle</div>
+					<input type="text" name="label"/></div>
+				</div>
+				<div class="field_line">
+					<div class="karacos_field_holder"><div class="label">Nom</div><input type="text" name="destname"/></div>
+					<div class="karacos_field_holder"><div class="label">Prenom</div><input type="text" name="dest1stname"/></div>
+				</div>
+				<div  class="field_line">
+					<div class="karacos_field_holder" style="width:5em">
+						<div class="label">Numero</div><input size="4" type="text" name="street_number"/>
+					</div>
+					<div class="karacos_field_holder">
+						<div class="label">Rue</div><input type="text" name="street_address"/>
+					</div>
+				</div>
+				<div  class="field_line">
+					<div class="karacos_field_holder"><div class="label">Complement</div><input type="text" name="street_address1"/></div>
+				</div>
+				<div  class="field_line">
+					<div class="karacos_field_holder"><div class="label">Code postal</div><input type="text" name="postal_code"/></div>
+					<div class="karacos_field_holder"><div class="label">Ville</div><input type="text" name="locality"/></div>
+				</div>
+				<div  class="field_line">
+					<div class="karacos_field_holder"><div class="label">Region</div><input type="text" name="region"/></div>
+					<div class="karacos_field_holder"><div class="label">Pays</div><input type="text" name="country"/></div>
+				</div>
+				<div  class="field_line">
+					<div class="action_buttons">
+						<button>Enregistrer</button>
+					</div>
+				</div>
+			</div> <!-- karacos_form -->
+		</form>
+	</div>
+</div>
+{.end}

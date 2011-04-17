@@ -1,0 +1,24 @@
+<% import karacos %>
+<% import sys, traceback %>
+% try:
+<% request = karacos.serving.get_request() %>
+<% session = karacos.serving.get_session() %>
+% if 'store_id' in request.str_params and 'base_id' in request.str_params:
+	<% store = karacos.base.db[request.str_params['base_id']].db[request.str_params['store_id']] %>
+	<% forms = store._set_services_form() %>
+	<div id="set_payment_services">
+	</div>
+	<script language="javascript">
+		KaraCos.Store.BackOffice.payment_ui(KaraCos('#set_payment_services'), ${karacos.json.dumps(forms)});
+	</script>
+%endif
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry
