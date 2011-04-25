@@ -133,9 +133,10 @@ class Store(karacos.db['StoreParent']):
             }
         }
         """
-    
     @karacos._db.isaction
     def get_items_list(self):
+        return self._get_items_list()
+    def _get_items_list(self):
         ""
         user = self.__domain__.get_user_auth()
         cart = self.get_open_cart_for_user()
@@ -157,6 +158,9 @@ class Store(karacos.db['StoreParent']):
             price = 0
             if 'public_price' in item.value:
                 price = item.value['public_price']
+            if price == None or price == "":
+                price = 0
+            price = "%.2f" % float(price)
             if 'content' in item.value and 'title' in item.value:
                 description = ""
                 if 'description' not in item.value:

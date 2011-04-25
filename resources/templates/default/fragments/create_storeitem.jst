@@ -1,0 +1,32 @@
+{.section form}	
+	<div id="karacos_create_storeitem_form">
+    	<h3 style="margin:0;padding:2px"><a href='#'>{title}</a></h3>
+    	<div style="margin:0;padding:2px">
+	        <form method="POST" action="{acturl}">
+	            <input type="hidden" name="method" value="{action}"/>
+	            {.section fields}
+	                <table>
+	                
+	                    <tr><td>Type</td><td><select name="type">
+	                    	<option>Hard</option>
+	                    	<option>Soft</option>
+	                    </select></td></tr>
+	               		<tr><td>Reference</td><td><input type="text" name="name"/></td></tr>
+	               		<tr><td>Titre</td><td><input type="text" name="title"/></td></tr>
+	               		<tr><td>Description</td><td><input type="text" name="description"/></td></tr>
+	               		<tr><td>Content</td><td><input type="text" name="content"/></td></tr>
+	               		<tr><td>Prix d'achat</td><td><input type="text" name="buy_cost" value="0"/></td></tr>
+	               		<tr><td>Prix vente mini</td><td><input type="text" name="min_sell_price" value="0"/></td></tr>
+	               		<tr><td>Prix public</td><td><input type="text" name="public_price" value="0"/></td></tr>
+	               		<tr><td>Tax ratio</td><td><input type="text" name="tax" value="0"/></td></tr>
+	               		<tr><td>Poids</td><td><input type="text" name="weight" value="0"/></td></tr>
+	               		<tr><td>Stock</td><td><input type="text" name="stock" value="0"/></td></tr>
+	               		
+	                	<tr><td colspan="2"><div class="form_{action}_button">{submit}</div></td></tr>
+	                </table>
+	            {.end}
+	        </form>
+	    </div>
+   </div>
+{.or}
+{.end}

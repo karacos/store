@@ -1,0 +1,1 @@
+<%include file="/includes/actionmenu/StoreItem.js"/>

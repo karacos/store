@@ -1,14 +1,89 @@
-<% user_auth = instance.__domain__.get_user_auth() %>
-<% isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name'] %>
-## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups'] %>
-
-<div id="node_menu">
-<ul>
-	% if isstaff:
-	<li><a href="${instance._get_action_url()}/_backoffice">Back Office</a></li>
-	% endif
-</ul>
-</div>
-<div id="StoreContent" typeOf="karacos:Store" about="urn:uuid:${instance.id}" url="${instance._get_action_url()}">
-    <script language="javascript" src="/fragment/Store.js?store_id=${instance.id}&base_id=${instance['base_id']}"></script>
-</div>
+% try:
+<% user_auth = instance.__domain__.get_user_auth()
+isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name']
+## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups']
+import karacos
+import sys, traceback
+request = karacos.serving.get_request()
+%>
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+<%
+import jsontemplate
+template = None
+fragment = "get_items_list.jst"
+try:
+    template = instance.__domain__.lookup.get_template('%s/fragments/%s' % (instance.get_site_theme_base(), fragment))
+except:
+    template = instance.__domain__.lookup.get_template('/default/fragments/%s' % fragment)
+jstsrc = template.render(instance=instance.__domain__, kw={})
+def more_formatters(formatter_name):
+    instance.log.warn("fetching formatter %s" % formatter_name)
+    if formatter_name == 'fprice' or formatter_name == u'fprice':
+        def format_price(price):
+            instance.log.warn("formatting price %s" % price)
+            if price == None:
+                price = "0"
+        	result = "%2f" % float(price)
+        	if result == None:
+        	    return "0.00"
+        	return result
+        return format_price
+    else:
+        def default(value):
+            return value
+        return default
+jst = jsontemplate.Template(jstsrc)
+items = instance._get_items_list()
+storeitemsstring = ""
+try:
+    storeitemsstring = jst.expand(items)
+except:
+    storeitemsstring = """Error processing :<pre>----
+%s
+----
+%s
+----
+%s
+----
+%s
+</pre>""" % (items,sys.exc_info(),traceback.format_exc(),jstsrc)
+%>
+	${storeitemsstring}
+% endif:
+<script language="javascript">
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+KaraCos(function() {
+% else:
+	KaraCos.config.page_id = '${instance.id}';
+	KaraCos.config.page_base_id = '${instance['parent_db']}';
+	KaraCos.authManager.authenticationHeader();
+%endif
+	KaraCos.Store.ready(function(store) {
+		try {
+			if (typeof store.show_page === "undefined") {
+				KaraCos.$.ajax({
+	    			dataType : 'script',
+					url: "/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}",
+					async: false
+				});
+			}
+			store.show_page();
+		} catch(e) {
+			console.log(e);
+		}
+	});
+	KaraCos.Store.init_store({url:'${instance._get_action_url()}'});
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+});
+%endif
+</script>
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry

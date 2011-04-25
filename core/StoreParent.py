@@ -38,13 +38,22 @@ class StoreParent(karacos.db['WebNode']):
         assert kw['type'] == 'Soft' or kw['type'] == 'Hard'
         type = '%sItem' % kw['type']
         del kw['type']
-        assert 'price' in kw
-        kw['price'] = float(kw['price'])
+        assert 'buy_cost' in kw
+        kw['buy_cost'] = float(kw['buy_cost'])
+        assert 'min_sell_price' in kw
+        kw['min_sell_price'] = float(kw['min_sell_price'])
+        assert 'public_price' in kw
+        kw['public_price'] = float(kw['public_price'])
+        assert 'title' in kw
+        kw['title'] = kw['title']
+        assert 'weight' in kw
+        kw['weight'] = float(kw['weight'])
         assert 'tax' in kw
         kw['tax'] = float(kw['tax'])
-        assert 'shipping' in kw
-        kw['shipping'] = float(kw['shipping'])
+        assert 'stock' in kw
+        kw['stock'] = float(kw['stock'])
         self._create_child_node(data=kw,type=type)
+        return {'success': True, 'message':'Node cree avec succes'}
     
     create_storeitem.form = {'title': _("Creer un produit"),
          'submit': _('Creer'),

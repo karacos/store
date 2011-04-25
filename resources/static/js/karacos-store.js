@@ -35,24 +35,33 @@ KaraCos.Store = {
 			 * Store initialization method
 			 */
 			init_store: function(config) {
-				this.store_url = config.url;
-				/**
-				 * Formatter for numbers in jsontemplates
-				 */
-				KaraCos.jst_options.more_formatters['fprice'] = function (s) { 
-					number = Number(s);
-					return (number.toFixed(2)).toString();
-				};
-				this.is_ready = true;
-				len = this.ready_func.length;
-				for(var i = 0; i < len; i++) {
-					try {
-						console.log("store_init["+i+"]");
-						console.log(this.ready_func[i]);
-						this.ready_func[i](this);
-					} catch(e) {
-						console.log(e);
+				try {
+					if (this.is_ready && this.store_url === config.url) {
+						console.log('store already initialized at that url');
+					} else {
+						this.store_url = config.url;
+						this.is_ready = true;
+						console.log('initializing store');
+						/**
+						 * Formatter for numbers in jsontemplates
+						 */
+						KaraCos.jst_options.more_formatters['fprice'] = function (s) { 
+							number = Number(s);
+							return (number.toFixed(2)).toString();
+						};
+						len = this.ready_func.length;
+						for(var i = 0; i < len; i++) {
+							try {
+								console.log("store_init["+i+"]");
+								console.log(this.ready_func[i]);
+								this.ready_func[i](this);
+							} catch(e) {
+								console.log(e);
+							}
+						}
 					}
+				} catch(e) {
+					console.log(e);
 				}
 			},
 			/**

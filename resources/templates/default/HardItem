@@ -1,36 +1,22 @@
-<% user_auth = instance.__domain__.get_user_auth() %>
-<% isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name'] %>
-<% number = 0 %>
-% try:
-<% number = instance.__store__.get_open_cart_for_user()['items'][instance.id] %>
-% except:
-
-% endtry
-<div id="node_menu">
+<% user_auth = instance.__domain__.get_user_auth() 
+isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name']
+number = 0
+try:
+    number = instance.__store__.get_open_cart_for_user()['items'][instance.id]
+except:
+    pass
+if 'description' not in instance:
+    instance['description'] = instance['content'][0:120]
+    instance.save()
+if 'weight' not in instance:
+    instance['weight'] = 100
+    instance.save()
+%>
+<div class="inside" id="node_menu">
 <ul>
-% if isstaff:
- <li><button class="save_button">Sauvegarder</button></li>
-	<li><button class="action_button" method="publish_node"
-	 % if instance._is_sell_open():
- 	 	style="display: none;"
- 	 % endif
-	url="${instance._get_action_url()}">Mettre en vente</button></li>
- 	<li><button class="action_button" method="unpublish_node"
- 	% if not instance._is_sell_open():
- 	 	style="display: none;"
- 	 % endif
- 	 url="${instance._get_action_url()}">Retirer de la vente</button></li>
-% endif
-% if 'description' not in instance:
-	<% instance['description'] = instance['content'][0:120] %>
-	<% instance.save() %>
-% endif
-% if 'weight' not in instance:
-	<% instance['weight'] = 100 %>
-	<% instance.save() %>
-% endif
-<li><div class="add_to_cart_panel" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item" url="${instance.__store__._get_action_url()}">
-    <div style="display: none" property="item_id">${instance.id}</div>
+<li><div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
+    <div style="display:none" property="item_id">${instance.id}</div>
+    <div style="display:none" property="url">${instance.__store__._get_action_url()}</div>
     <div class="item_cart_control">
         <div><div class="inc_number" ></div></div>
         <div class="item_number">Quantité au panier : <span  property="number" class="item_cart_number">${number}</span></div>
@@ -39,19 +25,20 @@
 </div></li>
 </ul>
 </div>
-<div
+<article class="inside"
 % if isstaff:
  id="item_main_container" typeof="karacos:method" 
-	about="urn:uuid:${instance.id}:edit_item" url="${instance._get_action_url()}"
+	about="urn:uuid:${instance.id}:edit_item"
 % else:
 	id="store_main_container" typeof="karacos:HardItem" 
-	about="urn:uuid:${instance.id}" url="${instance._get_action_url()}"
+	about="urn:uuid:${instance.id}"
 % endif
 	>
-	<h1 id="resource_title" property="title">${instance.__get_title__()}</h1>
-	<div id="resource_description" property="description">${instance['description']}</div>
-	<div id="resource_content" property="content">${instance.__get_content__()}</div>
-		<div id="item_info">
+	<div style="display:none;" property="url">${instance._get_action_url()}</div>
+	<h1 class="kc_property inside" id="resource_title" property="title">${instance.__get_title__()}</h1>
+	<div class="kc_property inside" id="resource_description" property="description">${instance['description']}</div>
+	<div class="kc_property inside" id="resource_content" property="content">${instance.__get_content__()}</div>
+		<div class=inside" id="item_info">
 		% try:
 			<div id="item_price">
 			Prix : <span property="public_price">${instance['public_price']}</span>
@@ -81,11 +68,17 @@
 		% endtry
 		</div> 
 		## item_info
-</div> 
+</article> 
 ## typeof (HardItem object)
 
 <script language="javascript">
+% if 'karacos-fragment' in request.headers or 'Karacos-Fragment' in request.headers:
+	KaraCos.config.page_id = '${instance.id}';
+	KaraCos.config.page_base_id = '${instance['parent_db']}';
+	KaraCos.authManager.authenticationHeader();
+%else:
 KaraCos(function() {
+%endif
 	KaraCos("#store_menu ul li button.save_button").button()
 	.click(function(event) {
 		event.stopImmediatePropagation();
@@ -113,5 +106,7 @@ KaraCos(function() {
 				}});
 	});
 KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
-});
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+	});
+% endif
 </script>
