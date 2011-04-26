@@ -63,8 +63,9 @@
                 <td>{title}</td>
                 <td>{price|fprice}</td>
                 <td>
-                <div typeof="karacos:method" about="urn:uuid:{id}:set_number_item" url="{store_url}">
+                <div typeof="karacos:method" about="urn:uuid:{id}:set_number_item">
                 <div style="display: none" property="item_id">{id}</div>
+                <div style="display: none" property="url">{store_url}</div>
                 <div class="modify_in_cart_control">
                     <div><div class="inc_number"/></div>
                     <div class="item_number">

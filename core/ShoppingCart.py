@@ -34,13 +34,62 @@ class ShoppingCart(karacos.db['Node']):
         assert self['status'] == 'open'
         assert 'number' in kw
         assert 'item' in kw
+        number = int(kw['number'])
         assert isinstance(kw['item'],karacos.db['StoreItem'])
         if kw['item'].id not in self['items']:
-            self['items'][kw['item'].id] = kw['number']
+            self['items'][kw['item'].id] = number
         else:
-            self['items'][kw['item'].id] = self['items'][kw['item'].id] + kw['number']
+            self['items'][kw['item'].id] = self['items'][kw['item'].id] + number
+        if 'cart_array' not in self:
+            self['cart_array'] = []
+        if 'weight' not in kw['item']:
+            item['weight'] = 0
+        if 'price' not in kw['item'] and 'public_price' in kw['item']:
+            kw['item']['price'] = float(kw['item']['public_price'])
+            kw['item'].save()
+        self['cart_array'].append({'id': kw['item']['_id'],
+                                        'name':kw['item']['name'],
+                                        'title': kw['item']['title'],
+                                        'tax':float(kw['item']['tax']),
+                                        'price':float(kw['item']['price']),
+                                        'net_price': float(kw['item']['price']) + float(kw['item']['tax']) * float(kw['item']['price']),
+                                        'weight': int(kw['item']['weight']) * int(self['items'][kw['item'].id]),
+                                        'number':number,
+                                        'total': float(kw['item']['price']) * number,
+                                        'tax_total': float(kw['item']['tax']) * float(kw['item']['price']) * number,
+                                        'net_total': (float(kw['item']['price']) + float(kw['item']['tax']) * float(kw['item']['price'])) * number})
         self.save()
+        return True
     
+    def set_number_item(self,item,number):
+        """
+        """
+        def find_item(mapelem):
+            if item.id == mapelem['id']:
+                return mapelem
+        def red_it(a,b):
+            if a != None:
+                return a
+            if b != None:
+                return b
+        found = None
+        if 'cart_array' not in self:
+            self['cart_array'] = []
+        else:
+            found = reduce(red_it,map(find_item, self['cart_array']))
+        if found == None:
+            self._add_item(*(),**{'item': item, 'number':number})
+        else:
+            it_id =  self['cart_array'].index(found)
+            self['items'][item.id] = number
+            found['number'] = number
+            found['weight'] = item['weight'] * self['items'][item.id]
+            found['total'] =  item['price'] * self['items'][item.id],
+            found['tax_total'] =  item['tax'] * item['price'] * self['items'][item.id],
+            found['net_total'] = (item['price'] + item['tax'] * item['price']) * self['items'][item.id]
+            self['cart_array'][it_id] = found
+            self.save()
+        
     @karacos._db.ViewsProcessor.isview('self','javascript')
     def __get_cart_items_array__(self, store):
         """//%s
@@ -61,36 +110,25 @@ class ShoppingCart(karacos.db['Node']):
     
     def _get_cart_array(self):
                 
-        result = {'items':[],'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0}
-        if 'validated' not in self:
+#        if 'validated' not in self:
+#            try:
+#                for item_key in self['items'].keys() :
+#                    self.db[item_key]._do_cart_validation(self)
+#                result['requires'] = 'billing'
+#            except:
+#                result['requires'] = 'shipping'
+#        else:
+#            result['requires'] = 'meet'
+        if 'cart_array' not in self:
+            self['cart_array'] = []
+            self.save()
+        result = {'items': self['cart_array'], 'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0}
+        for item in self['cart_array']:
             try:
-                for item_key in self['items'].keys() :
-                    self.db[item_key]._do_cart_validation(self)
-                result['requires'] = 'billing'
-            except:
-                result['requires'] = 'shipping'
-        else:
-            result['requires'] = 'meet'
-        for item in self.__get_cart_items_array__(self.__store__.id,*(), **{'keys':self['items'].keys()}):
-            try:
-                if 'weight' in item.value:
-                    result['cart_total_weight'] = result['cart_total_weight'] + item.value['weight'] * self['items'][item.key]
-                if 'price' not in item.value and 'public_price' in item.value:
-                    item.value['price'] = int(item.value['public_price'])
-                result['items'].append({'id': item.value['_id'],
-                                        'name':item.value['name'],
-                                             'title': item.value['title'],
-                                                'tax':item.value['tax'],
-                                                'price':int(item.value['price']),
-                                                'net_price': item.value['price'] + item.value['tax'] * item.value['price'],
-                                                'weight': item.value['weight'],
-                                                'number':self['items'][item.key],
-                                                'total': item.value['price'] * self['items'][item.key],
-                                                'tax_total': item.value['tax'] * item.value['price'] * self['items'][item.key],
-                                                'net_total': (item.value['price'] + item.value['tax'] * item.value['price']) * self['items'][item.key]})
-                result['cart_total'] = result['cart_total'] + result['items'][-1]['total']
-                result['cart_tax_total'] = result['cart_tax_total'] + result['items'][-1]['tax_total']
-                result['cart_net_total'] = result['cart_net_total'] + result['items'][-1]['net_total']
+                result['cart_total_weight'] = int(result['cart_total_weight']) + int(item['weight']) * int(self['items'][item['id']])
+                result['cart_total'] = result['cart_total'] + float(item['total'])
+                result['cart_tax_total'] = result['cart_tax_total'] + float(item['tax_total'])
+                result['cart_net_total'] = result['cart_net_total'] + float(item['net_total'])
             except:
                 pass
         if 'billing_adr' in self:

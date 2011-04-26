@@ -17,7 +17,8 @@
         </div>
        
         <div class="store_item_actions">
-            <div class="add_to_cart_panel" typeof="karacos:method" about="urn:uuid:{id}:set_number_item" url="{store_url}">
+            <div class="add_to_cart_panel" typeof="karacos:method" about="urn:uuid:{id}:set_number_item">
+            	<div style="display:none" property="url">{store_url}</div>
                 <div style="display: none" property="item_id">{id}</div>
                 <div class="item_cart_control">
                     <div><div class="inc_number"/></div>

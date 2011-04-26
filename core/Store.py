@@ -314,8 +314,10 @@ class Store(karacos.db['StoreParent']):
         sets a new number of given items in shopping Cart
         """
         cart = self.get_open_cart_for_user()
+        item = self.db[item_id]
         cart['items'][item_id] = int(number)
         cart.save()
+        cart.set_number_item(item,int(number))
         return {'status' :'success', 'message':_("item modifie avec succes")}
         
     
