@@ -76,7 +76,8 @@ class ShoppingCart(karacos.db['Node']):
         if 'cart_array' not in self:
             self['cart_array'] = []
         else:
-            found = reduce(red_it,map(find_item, self['cart_array']))
+            if len(self['cart_array']) > 0:
+                found = reduce(red_it,map(find_item, self['cart_array']))
         if found == None:
             self._add_item(*(),**{'item': item, 'number':number})
         else:

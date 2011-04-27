@@ -50,6 +50,30 @@ class StoreBackOffice(karacos.db['WebNode']):
         self.save()
         return {'success': True}
     
+    @karacos._db.ViewsProcessor.isview('self', 'javascript')
+    def _get_shopping_carts_(self,store_id,*args,**kw):
+        """ //%s
+        function(doc) {
+            if (doc.type == "ShoppingCart" && doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+                emit(doc.status, doc);
+            }
+        }
+        """
+    
+    @karacos._db.isaction
+    def get_shopping_carts(self,*args,**kw):
+        return {'success': True, 'data': self._get_shopping_carts()}
+    
+    def _get_shopping_carts(self,*args,**kw):
+        """
+        Returns the list of shopping carts
+        """
+        result = []
+        carts = self._get_shopping_carts_(self.__store__.id)
+        for cart in carts:
+            result.append(cart.value)
+        return result
+    
     def _get_shipping_rates(self):
         if 'shipping_rates' not in self:
             self['shipping_rates'] = {}

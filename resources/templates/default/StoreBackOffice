@@ -11,12 +11,15 @@ request = karacos.serving.get_request()
 		<ul>
 			<li><a href="/fragment/backoffice_payment_services?store_id=${instance.__store__.id}&base_id=${instance.__store__['parent_db']}">Store Payment Services</a></li>
 		% for action in actions['actions']:
-		% if action['action'] == 'get_shipping_rates':
-			<li><a href="/fragment/backoffice_shipping_rates?office_id=${instance.id}&base_id=${instance['parent_db']}">Shipping rates</a></li>
-		% endif
-		%if action['action'] == 'set_shipping_rates':
-			<% set_shipping_rates_form = True %>
-		% endif
+			% if action['action'] == 'get_shipping_rates':
+				<li><a href="/fragment/backoffice_shipping_rates?office_id=${instance.id}&base_id=${instance['parent_db']}">Shipping rates</a></li>
+			% endif
+			%if action['action'] == 'set_shipping_rates':
+				<% set_shipping_rates_form = True %>
+			% endif
+			% if action['action'] == 'get_shopping_carts':
+				<li><a href="/fragment/backoffice_carts?office_id=${instance.id}&base_id=${instance['parent_db']}">Shopping carts</a></li>
+			% endif
 		%endfor
 		</ul>
 	<div>
