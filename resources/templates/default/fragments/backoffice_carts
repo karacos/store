@@ -8,9 +8,19 @@ session = karacos.serving.get_session() %>
 % if 'office_id' in request.str_params and 'base_id' in request.str_params:
 	<% office = karacos.base.db[request.str_params['base_id']].db[request.str_params['office_id']] %>
 	<% carts = office._get_shopping_carts() %>
-	<div id="get_shopping_carts">
+	<div id="kc_shopping_carts_admin">
 		<h3><a href="#">Carts</a></h3>
 		<div  id="shopping_carts_grid">
+		<div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
+        <div style="display: none" property="url">${office._get_action_url()}</div>
+        <div style="display: none" property="criteria">cancelled</div>
+        Purge canceled cart
+        </div>
+         <div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
+         <div style="display: none" property="url">${office._get_action_url()}</div>
+         <div style="display: none" property="criteria">inactive</div>
+        Purge open carts for inactive users/sessions
+        </div>
 			<table>
 				% for cart in carts:
 					<tr><td>${cart['status']}</td><td>${cart['_id']}</td></tr>
@@ -18,6 +28,9 @@ session = karacos.serving.get_session() %>
 			</table>
 		</div>
 	</div>
+	<script language="javascript">
+		KaraCos.Store.BackOffice.carts_management_ui(KaraCos('#kc_shopping_carts_admin'));
+	</script>
 %endif
 % except:
 	some errors :

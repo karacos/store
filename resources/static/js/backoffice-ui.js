@@ -93,6 +93,21 @@ KaraCos.Store.ready(function(store) {
 						console.log(e);
 					}
 				}});
+		},
+		carts_management_ui: function(elem) {
+			var backoffice = this;
+			elem.accordion();
+			KaraCos.button(elem.find(".karacos_button").button(),
+				function(result){
+					if (typeof result.error !== "undefined") {
+						KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
+					} else {
+						KaraCos.alert(result.message,[{'label': 'Ok'}]);
+					}
+			});
+			
+			this.management_ui_elem = elem;
+			return backoffice;
 		}
 	}
 	KaraCos.Store.BackOffice = new bo(store);
