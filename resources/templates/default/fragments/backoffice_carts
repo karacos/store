@@ -13,7 +13,7 @@ session = karacos.serving.get_session() %>
 		<div  id="shopping_carts_grid">
 		<div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
         <div style="display: none" property="url">${office._get_action_url()}</div>
-        <div style="display: none" property="criteria">cancelled</div>
+        <div style="display: none" property="criteria">canceled</div>
         Purge canceled cart
         </div>
          <div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
@@ -23,7 +23,7 @@ session = karacos.serving.get_session() %>
         </div>
 			<table>
 				% for cart in carts:
-					<tr><td>${cart['status']}</td><td>${cart['_id']}</td></tr>
+					<tr><td>${cart['status']}</td><td>${cart['_id']}</td><td>${cart['last_modification_date']}</td></tr>
 				% endfor
 			</table>
 		</div>

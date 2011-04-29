@@ -10,6 +10,7 @@ KaraCos.Store.ready(function(store) {
 		 * initialize backoffice
 		 */
 		init: function() {
+			var backoffice = this;
 			jQuery.ajax({ url: store.store_url+"/_backoffice/get_user_actions_forms",
 				dataType: "json",
 				async: false,
@@ -17,10 +18,9 @@ KaraCos.Store.ready(function(store) {
 				context: document.body,
 				type: "GET",
 				success: function(data) {
-					var backoffice;
 					if (data.success) {
-						backoffice = KaraCos('#store_backoffice');
-						backoffice.find('#store_backoffice_actions').tabs();
+						backoffice.elem = KaraCos('#store_backoffice');
+						backoffice.elem.find('#store_backoffice_actions').tabs();
 					}
 				}
 			});
@@ -96,15 +96,22 @@ KaraCos.Store.ready(function(store) {
 		},
 		carts_management_ui: function(elem) {
 			var backoffice = this;
+			backoffice.carts_management_elem = elem;
 			elem.accordion();
-			KaraCos.button(elem.find(".karacos_button").button(),
-				function(result){
-					if (typeof result.error !== "undefined") {
-						KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
-					} else {
-						KaraCos.alert(result.message,[{'label': 'Ok'}]);
-					}
-			});
+			elem.find(".karacos_button").each(
+					function(i,kcbtn) {
+						var $kcbtn = KaraCos.$(kcbtn);
+						$kcbtn.button();
+						KaraCos.button($kcbtn,
+								function(result){
+							if (typeof result.error !== "undefined") {
+								KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
+							} else {
+								KaraCos.alert(result.message,[{'label': 'Ok'}]);
+								backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+							}
+						});
+					});
 			
 			this.management_ui_elem = elem;
 			return backoffice;

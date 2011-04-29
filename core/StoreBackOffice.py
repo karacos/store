@@ -74,6 +74,37 @@ class StoreBackOffice(karacos.db['WebNode']):
             result.append(cart.value)
         return result
     
+    def _purge_canceled_carts(self):
+        """
+        """
+        carts = self._get_shopping_carts_(self.__store__.id, *(),**{'key':'cancel'})
+        rmcount = 0
+        for cart in carts:
+            rmcount+=1
+            del self.__store__.db[cart.value['_id']]
+        return "%s canceled carts deleted" % rmcount
+    
+    def _purge_inactive_carts(self):
+        """
+        """
+        carts = self._get_shopping_carts_(self.__store__.id, *(),**{'keys':['open','process_pay']})
+        rmcount = 0
+        purge_before = datetime.datetime.now() - datetime.timedelta(2) # more than two day old
+        for cart in carts:
+            cart_date = datetime.datetime.strptime(cart.value['last_modification_date'],'%Y-%m-%dT%H:%M:%S')
+            if cart_date < purge_before:
+                rmcount+=1
+                del self.__store__.db[cart.value['_id']]
+        return "%s inactive carts deleted" % rmcount
+    
+    @karacos._db.isaction
+    def purge_carts(self,criteria=None):
+        if criteria == "canceled":
+            return {'success': True, 'message': self._purge_canceled_carts()}
+        if criteria == "inactive":
+            return {'success': True, 'message': self._purge_inactive_carts()}
+        return {'success': False, 'message': "Nothing to do without criteria"}
+    
     def _get_shipping_rates(self):
         if 'shipping_rates' not in self:
             self['shipping_rates'] = {}
