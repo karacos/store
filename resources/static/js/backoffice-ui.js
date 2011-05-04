@@ -112,7 +112,41 @@ KaraCos.Store.ready(function(store) {
 							}
 						});
 					});
-			
+			elem.find(".show_cart").each(
+				function(i, showbtn){
+					var $showbtn = KaraCos.$(showbtn),
+						model;
+					model = VIE.ContainerManager.getInstanceForContainer($showbtn.closest("[about]"));
+					$showbtn.button().click(
+						function(event){
+							KaraCos.action({
+								url: store.store_url,
+								method: 'get_cart',
+								async: false,
+								params: {'cart_id': model.get('cart_id')},
+								callback: function(data) {
+									KaraCos.$.ajax({ url: "/fragment/show_cart.jst",
+										async: false,
+										context: document.body,
+										type: "GET",
+										success: function(tmplsrc) {
+											var template = jsontemplate.Template(tmplsrc, KaraCos.jst_options);
+											if (typeof backoffice.cart_window === "undefined") {
+												backoffice.cart_window = KaraCos('#kc_backoffice_cart');
+												if (backoffice.cart_window.length === 0) {
+													backoffice.cart_window = KaraCos('<div id="kc_backoffice_cart"/>');
+													KaraCos('body').append(backoffice.cart_window);
+												}
+											}
+											backoffice.cart_window.empty().append(template.expand(data.result));
+											backoffice.cart_window.dialog({width: '500px', modal:true});
+											backoffice.cart_window.dialog('show');
+										}
+									})
+								}
+							});
+						});
+				});
 			this.management_ui_elem = elem;
 			return backoffice;
 		}

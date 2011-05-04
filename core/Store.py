@@ -289,6 +289,10 @@ class Store(karacos.db['StoreParent']):
         return {'status':'success', 'store_url': self._get_action_url(),'data':self.get_open_cart_for_user(),'datatype':'ShoppingCart'}
 
     @karacos._db.isaction
+    def get_cart(self, cart_id=None):
+        return {'success': True, 'result': self.db[cart_id]}
+        
+    @karacos._db.isaction
     def get_shopping_cart(self):
         result = {'success': True, 'status':'success',
                   'store_url': self._get_action_url(),

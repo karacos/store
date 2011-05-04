@@ -61,7 +61,7 @@ class StoreBackOffice(karacos.db['WebNode']):
         """
     
     @karacos._db.isaction
-    def get_shopping_carts(self,*args,**kw):
+    def get_shopping_carts(self):
         return {'success': True, 'data': self._get_shopping_carts()}
     
     def _get_shopping_carts(self,*args,**kw):
@@ -69,7 +69,7 @@ class StoreBackOffice(karacos.db['WebNode']):
         Returns the list of shopping carts
         """
         result = []
-        carts = self._get_shopping_carts_(self.__store__.id)
+        carts = self._get_shopping_carts_(self.__store__.id,*args,**kw)
         for cart in carts:
             result.append(cart.value)
         return result
