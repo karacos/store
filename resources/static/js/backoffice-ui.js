@@ -97,21 +97,72 @@ KaraCos.Store.ready(function(store) {
 		carts_management_ui: function(elem) {
 			var backoffice = this;
 			backoffice.carts_management_elem = elem;
-			elem.accordion();
+			elem.accordion({
+				autoHeight: false,
+				navigation: true,
+				scrollable: true});
 			elem.find(".karacos_button").each(
-					function(i,kcbtn) {
-						var $kcbtn = KaraCos.$(kcbtn);
-						$kcbtn.button();
-						KaraCos.button($kcbtn,
-								function(result){
-							if (typeof result.error !== "undefined") {
-								KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
-							} else {
-								KaraCos.alert(result.message,[{'label': 'Ok'}]);
-								backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
-							}
-						});
+				function(i,kcbtn) {
+					var $kcbtn = KaraCos.$(kcbtn);
+					$kcbtn.button();
+					KaraCos.button($kcbtn,
+							function(result){
+						if (typeof result.error !== "undefined") {
+							KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
+						} else {
+							KaraCos.alert(result.message,[{'label': 'Ok'}]);
+							backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+						}
 					});
+				});
+			elem.find(".add_tracking_number").each(
+				function(i,trckbtn) {
+					var $trckbtn = KaraCos.$(trckbtn),
+					model;
+					$trckbtn.button();
+					model = VIE.ContainerManager.getInstanceForContainer($trckbtn.closest("[about]"));
+					$trckbtn.button().click(
+						function(event){
+							if (typeof backoffice.cart_window === "undefined") {
+								backoffice.cart_window = KaraCos('#kc_backoffice_cart');
+								if (backoffice.cart_window.length === 0) {
+									backoffice.cart_window = KaraCos('<div id="kc_backoffice_cart"/>');
+									KaraCos('body').append(backoffice.cart_window);
+								}
+							}
+							backoffice.cart_window.empty().append('<form>Tracking number : <input type="TEXT" name="tracking_number"/> <br/>' +
+									'Transporter : <input type="TEXT" name="shipment_supplier"/><br/><button>Valider</button></form>');
+							backoffice.cart_window.dialog({width: '500px', modal:true});
+							backoffice.cart_window.dialog('show');
+							backoffice.cart_window.find("button").button().click(
+								function(event) {
+									var params = {};
+									event.stopImmediatePropagation();
+									event.preventDefault();
+									$.each($(this).closest('form').serializeArray(), function(i, field) {
+										if (field.name === "method") {
+											method = field.value;
+										} else {
+											params[field.name] = field.value;
+										}
+									}); // each
+									params['cart_id'] = model.get('cart_id'); 
+									KaraCos.action({
+										url: store.store_url+"/_backoffice",
+										method: 'process_cart_shipping',
+										async: false,
+										params: params,
+										callback: function(data) {
+											if (data.success) {
+												backoffice.cart_window.empty().text("Le numero de suivi est renseigne");
+												backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+												}
+											}
+										});
+									
+								});
+						});
+				});
 			elem.find(".show_cart").each(
 				function(i, showbtn){
 					var $showbtn = KaraCos.$(showbtn),
@@ -141,6 +192,21 @@ KaraCos.Store.ready(function(store) {
 											backoffice.cart_window.empty().append(template.expand(data.result));
 											backoffice.cart_window.dialog({width: '500px', modal:true});
 											backoffice.cart_window.dialog('show');
+											backoffice.cart_window.find("button").button().click(
+												function(event){
+													KaraCos.action({
+														url: store.store_url+"/_backoffice",
+														method: 'prepare_cart',
+														async: false,
+														params: {'cart_id': model.get('cart_id')},
+														callback: function(data) {
+															if (data.success) {
+																backoffice.cart_window.empty().text("Cette commande est consideree !");
+																backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+																}
+															}
+														});
+												});
 										}
 									})
 								}

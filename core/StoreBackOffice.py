@@ -98,6 +98,34 @@ class StoreBackOffice(karacos.db['WebNode']):
         return "%s inactive carts deleted" % rmcount
     
     @karacos._db.isaction
+    def prepare_cart(self, cart_id=None):
+        return self._prepare_cart(cart_id)
+    
+    def _prepare_cart(self, cart_id=None):
+        """
+        Notify order preparation
+        """
+        cart = self.__store__.db[cart_id]
+        cart['status'] = 'shipment'
+        cart.save()
+        return {'success': True, 'message': 'Cart is considered as being prepared'}
+    
+    @karacos._db.isaction
+    def process_cart_shipping(self,cart_id=None,shipment_supplier=None, tracking_number=None):
+        return self._process_cart_shipping(cart_id, shipment_supplier, tracking_number)
+    
+    def _process_cart_shipping(self,cart_id=None,shipment_supplier=None, tracking_number=None):
+        """
+        Notify order shipment, requires tracking number from transporter
+        """
+        cart = self.__store__.db[cart_id]
+        cart['status'] = 'shipped'
+        cart['shipment'] = {'supplier':shipment_supplier,
+                            'tracking_number':tracking_number}
+        cart.save()
+        return {'success': True, 'message': 'Cart is considered as shipped to customer'}
+        
+    @karacos._db.isaction
     def purge_carts(self,criteria=None):
         if criteria == "canceled":
             return {'success': True, 'message': self._purge_canceled_carts()}
@@ -270,3 +298,5 @@ class StoreBackOffice(karacos.db['WebNode']):
                                    'action':'payment_cancelled', 'creation_date':payment['creation_date'],
                                    'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()
+    
+    

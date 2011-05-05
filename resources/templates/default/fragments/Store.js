@@ -21,32 +21,30 @@ try {
 					async: false,
 					success: function(jstsrc) {
 						template = jsontemplate.Template(jstsrc, KaraCos.jst_options);
-					}});
-				jQuery.ajax({ url: store.store_url+"/get_items_list",
-					dataType: "json",
-					async: false,
-					contentType: 'application/json',
-					context: document.body,
-					type: "GET",
-					success: function(data) {
-						var main_content = KaraCos('#MainContent');
-						console.log("items list fetched");
-						try {
-							main_content.empty();
-							main_content.append(template.expand(data));
-							main_content.find('.karacos_store_item').panel({
-								collapsible:false
-							});
+						KaraCos.action({ url: store.store_url,
+							method: "get_items_list",
+							async: false,
+							params:{count:9,page:1},
+							callback: function(data) {
+								var main_content = KaraCos('#StoreContent');
+								console.log("items list fetched");
+								try {
+									main_content.empty();
+									main_content.append(template.expand(data));
+									main_content.find('.karacos_store_item').panel({
+										collapsible:false
+									});
 //						.sortable({
 //								placeholder: "ui-state-highlight"
 //							});
-							store.activate_item_cart_buttons();							
-						} catch(e) {
-							console.log("Exception in show_page");
-							console.log(e);
-						}
-					}
-				});
+									store.activate_item_cart_buttons();							
+								} catch(e) {
+									console.log("Exception in show_page");
+									console.log(e);
+								}
+							}
+						});
+					}});
 			} catch(e) {
 				console.log(e);
 			}

@@ -134,52 +134,67 @@ class Store(karacos.db['StoreParent']):
         }
         """
     @karacos._db.isaction
-    def get_items_list(self):
-        return self._get_items_list()
-    def _get_items_list(self):
+    def get_items_list(self, count=None, page=None):
+        count = int(count)
+        page = int(page)
+        return self._get_items_list(count,page)
+    
+    def _get_items_list(self, count, page):
         ""
         user = self.__domain__.get_user_auth()
         cart = self.get_open_cart_for_user()
-        keys = user['groups']
+        keys = [] + user['groups']
         keys.append("user.%s" % user['name'])
         results = self._get_web_store_items_by_auth_(*(), **{'keys':keys})
         result = {'success': True, 
                       'status': 'success',
-                      'data': []
+                      'data': [],
+                      'total': 0,
+                      'page_total': 0
                       }
+        min = (page - 1) * count
+        max = page * count
+        current = 0
+        self.log.error("_get_items_list: results : %s" % results)
         for item in results:
-            image = ''
-            if 'image' in item.value:
-                image = "/_atts/%s/%s" % (item.id,item.value['image'])
-            elif 'k_atts' in item.value:
-                for file in item.value['k_atts']:
-                    if item.value['k_atts'][file]['type'].startswith('image') and image == '':
-                        image = "/_atts/%s/%s" % (item.id,file)
-            price = 0
-            if 'public_price' in item.value:
-                price = item.value['public_price']
-            if price == None or price == "":
+            if min <= current and current < max:
+                image = ''
+                if 'image' in item.value:
+                    image = "/_atts/%s/%s" % (item.id,item.value['image'])
+                elif 'k_atts' in item.value:
+                    for file in item.value['k_atts']:
+                        if item.value['k_atts'][file]['type'].startswith('image') and image == '':
+                            image = "/_atts/%s/%s" % (item.id,file)
                 price = 0
-            price = "%.2f" % float(price)
-            if 'content' in item.value and 'title' in item.value:
-                description = ""
-                if 'description' not in item.value:
-                    description = item.value['content']
-                else:
-                    description = item.value['description']
-                number = 0
-                if item.id in cart['items']:
-                    number = cart['items'][item.id]
-                result['data'].append({'id': item.id,
-                                       'name': item.value['name'],
-                                       'url': "%s/%s" % (self._get_action_url(),item.value['name']),
-                                       'store_url': self._get_action_url(),
-                                       'description': description,
-                                       'image': image,
-                                       'price': price,
-                                       'number': number,
-                                       'title': item.value['title']
-                                       })
+                if 'public_price' in item.value:
+                    price = item.value['public_price']
+                if price == None or price == "":
+                    price = 0
+                price = "%.2f" % float(price)
+                if 'content' in item.value and 'title' in item.value:
+                    description = ""
+                    if 'description' not in item.value:
+                        description = item.value['content']
+                    else:
+                        description = item.value['description']
+                    number = 0
+                    if item.id in cart['items']:
+                        number = cart['items'][item.id]
+                    result['data'].append({'id': item.id,
+                                           'name': item.value['name'],
+                                           'url': "%s/%s" % (self._get_action_url(),item.value['name']),
+                                           'store_url': self._get_action_url(),
+                                           'description': description,
+                                           'image': image,
+                                           'price': price,
+                                           'number': number,
+                                           'title': item.value['title']
+                                           })
+            current = current + 1
+        result['total'] = current
+        result['page_total'] = current / count
+        if current % count != 0:
+            result['page_total'] = result['page_total'] +1 
         return result
     
     @karacos._db.isaction
@@ -291,7 +306,7 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def get_cart(self, cart_id=None):
         return {'success': True, 'result': self.db[cart_id]}
-        
+    
     @karacos._db.isaction
     def get_shopping_cart(self):
         result = {'success': True, 'status':'success',

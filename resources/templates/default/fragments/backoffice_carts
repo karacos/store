@@ -22,6 +22,20 @@ session = karacos.serving.get_session() %>
 				% endfor
 			</table>
 		</div>
+		<h3><a href="#">Awaiting tracking numbers</a></h3>
+		<div>
+			<table>
+				<% carts = office._get_shopping_carts(*(),**{'key':'shipment'}) %>
+				% for cart in carts:
+					<tr typeof="karacos:ShoppingCart" about="urn:uuid:${cart['_id']}">
+						<td property="status">${cart['status']}</td>
+						<td property="cart_id">${cart['_id']}</td>
+						<td property="last_modification_date">${cart['last_modification_date']}</td>
+						<td><button class="add_tracking_number">Saisir numero de suivi</button></td>
+					</tr>
+				% endfor
+			</table>
+		</div>
 		<h3><a href="#">All carts</a></h3>
 		<div  id="shopping_carts_grid">
 			<div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">

@@ -56,11 +56,11 @@ KaraCos(function() {
 		id: '${instance.id}',
 		db: '${instance['base_id']}'
 	};
-	var appendEl = document.head;
-	var scriptEl = document.createElement('script');
-		scriptEl.src = '/_store/js/backoffice-ui.js';
-		scriptEl.setAttribute('defer','defer');
-		appendEl.appendChild(scriptEl);
+	var appendEl = document.head,
+	    scriptEl = document.createElement('script');
+	scriptEl.src = '/_store/js/backoffice-ui.js';
+	scriptEl.setAttribute('defer','defer');
+	appendEl.appendChild(scriptEl);
 	/*jQuery.ajax({
 	//		url:'/_store/js/backoffice-ui.js',
 	//		async: true,
