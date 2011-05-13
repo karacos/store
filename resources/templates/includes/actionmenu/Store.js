@@ -8,26 +8,50 @@
 	<% user_auth = instance.__domain__.get_user_auth() %>
 	<% isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name'] %>
 	## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups'] %>
-	% if 'w_browse' in instance._get_backoffice_node()._get_actions():
+	% try:
+		% if 'w_browse' in instance._get_backoffice_node()._get_actions():
+			(function(toolbar) {
+				
+				var button = KaraCos('<button">Administration boutique</button>')
+					.button()
+					.click(function(event) {
+						var url = '${instance._get_backoffice_node()._get_action_url()}';
+						History.pushState(null, null, url);
+						KaraCos.$.ajax({
+							url: url,
+							headers: {'Karacos-Fragment': 'true'},
+							success: function(data) {
+								KaraCos('#MainContent').empty().append(data);
+								KaraCos.authManager.authenticationHeader();
+							}
+						});
+					});
+					toolbar.prepend(button);
+			})(toolbar);
+		% endif
+	% except:
 		(function(toolbar) {
-			
-			var button = KaraCos('<button">Administration boutique</button>')
+			var button = KaraCos('<button">Creer backoffice</button>')
 				.button()
 				.click(function(event) {
-					var url = '${instance._get_backoffice_node()._get_action_url()}';
-					History.pushState(null, null, url);
-					KaraCos.$.ajax({
+					var url = '${instance._get_action_url()}';
+					KaraCos.action({
 						url: url,
-						headers: {'Karacos-Fragment': 'true'},
-						success: function(data) {
-							KaraCos('#MainContent').empty().append(data);
+						method: 'create_child_node',
+						async: false,
+						params: {
+							'name': '_backoffice',
+							'type': 'StoreBackOffice',
+							'base': false
+						},
+						callback: function(data) {
+							KaraCos.authManager.authenticationHeader();
 						}
 					});
-					KaraCos.authManager.authenticationHeader();
 				});
 				toolbar.prepend(button);
 		})(toolbar);
-	% endif
+	%endtry
 % endif
 <%include file="/includes/actionmenu/StoreParent.js"/>
 % except:

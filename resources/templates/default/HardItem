@@ -1,6 +1,9 @@
 <% user_auth = instance.__domain__.get_user_auth() 
 isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name']
 number = 0
+import karacos
+import sys, traceback
+request = karacos.serving.get_request()
 try:
     number = instance.__store__.get_open_cart_for_user()['items'][instance.id]
 except:

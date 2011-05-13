@@ -124,7 +124,7 @@ class Store(karacos.db['StoreParent']):
     def _get_web_store_items_by_auth_(self,*args,**kw):
         """
         function(doc) {
-            if (doc.public_price, doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+            if (doc.public_price && doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
                 for (var auth in doc.ACL) {
                     if (doc.ACL[auth].join().search(/w_browse/) != -1) {
                         emit(auth,doc);
@@ -557,8 +557,8 @@ class Store(karacos.db['StoreParent']):
          'submit': _('Ajouter'),
          'fields': [{'name':'svc_name', 'title':'Nom du service','dataType': 'TEXT'},
                  ] }
+        forms = []
         if 'conf_services' in self:
-            forms = []
             
             for svc_conf in self['conf_services'].keys() :
                 confform = {}
