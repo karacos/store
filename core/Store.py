@@ -117,8 +117,15 @@ class Store(karacos.db['StoreParent']):
         if 'pay_callback' not in self['ACL'][custgrpname]:
             self['ACL'][custgrpname].append("pay_callback")
         
-        self.save()
+        self['public'] = True
         
+        self.save()
+    
+    def _is_public(self):    
+        if 'public' not in self:
+            self['public'] = False
+            self.save()
+        return self['public']
     
     @karacos._db.ViewsProcessor.isview('self', 'javascript')
     def _get_web_store_items_by_auth_(self,*args,**kw):
@@ -200,7 +207,7 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def publish_node(self):
         self._publish_node()
-        return {'status':'success', 'message':_("La boutique est maintenant visible de tous")}
+        return {'status':'success', 'message':_("La boutique est maintenant visible de tous"), 'success': True}
     publish_node.label = _("Publier boutique")
     
     def _get_open_cart_for_customer(self,customer_id):
