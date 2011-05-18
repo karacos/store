@@ -1,0 +1,183 @@
+% try:
+<% user_auth = instance.__domain__.get_user_auth()
+isstaff = 'anonymous@%s' % instance.__domain__['name'] != user_auth['name']
+## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups']
+import karacos
+import sys, traceback
+request = karacos.serving.get_request()
+count=9
+page=1
+if 'count' in request.str_params:
+	count = int(request.str_params['count'])
+if 'page' in request.str_params:
+	page = int(request.str_params['page'])
+items = instance._get_items_list(instance._get_web_store_items_by_auth_,count,page)
+%>
+<!--
+${dir(request)}
+
+${request.query_string}
+
+${request._headers}
+
+${request.str_queryvars}
+
+${request.path_qs}
+-->
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+<%
+import jsontemplate
+template = None
+fragment = "get_items_list.jst"
+try:
+    template = instance.__domain__.lookup.get_template('%s/fragments/%s' % (instance.get_site_theme_base(), fragment))
+except:
+    template = instance.__domain__.lookup.get_template('/default/fragments/%s' % fragment)
+jstsrc = template.render(instance=instance.__domain__, kw={})
+def more_formatters(formatter_name):
+    instance.log.warn("fetching formatter %s" % formatter_name)
+    if formatter_name == 'fprice' or formatter_name == u'fprice':
+        def format_price(price):
+            instance.log.warn("formatting price %s" % price)
+            if price == None:
+                price = "0"
+        	result = "%2f" % float(price)
+        	if result == None:
+        	    return "0.00"
+        	return result
+        return format_price
+    else:
+        def default(value):
+            return value
+        return default
+jst = jsontemplate.Template(jstsrc)
+storeitemsstring = ""
+try:
+    storeitemsstring = jst.expand(items)
+except:
+    storeitemsstring = """Error processing :<pre>----
+%s
+----
+%s
+----
+%s
+----
+%s
+</pre>""" % (items,sys.exc_info(),traceback.format_exc(),jstsrc)
+%>
+	
+% endif
+
+<aside class="inside">
+	<nav>
+	<% storefolders = instance._get_store_folders_by_id_()['data'] %>
+		<ul id="aside_menu" role="listbox">
+			% for folder in storefolders:
+				<li role="menuitem"><a href="${instance._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
+			%endfor
+		</ul>
+	</nav>
+</aside>
+
+% if items['page_total'] > 1:
+<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center">
+	<ul>
+	% if page > 1:
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page -1 %>">&lt; Pr&eacute;c&eacute;dent</a></li>
+	%endif
+	<% pageid = 1 %>
+	% while ( pageid <= items['page_total']):
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=${pageid}">${pageid}</a></li>
+		<% pageid +=1 %>
+	% endwhile
+	
+	% if page < items['page_total']:
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page +1 %>">Suivant &gt;</a></li>
+	%endif
+	</ul>
+</div>
+<script language="javascript">
+KaraCos.Store.ready(function(store) {
+	KaraCos.$("#store_page_nav_header li").button().click(
+		function(event){
+			event.stopImmediatePropagation();
+			event.preventDefault();
+			var $this = KaraCos.$(this), url;
+			url = $this.find('a').attr("href");
+			History.pushState(null, null, url);
+					KaraCos.$.ajax({
+						url: url,
+						headers: {'Karacos-Fragment': 'true'},
+						success: function(data) {
+							KaraCos('#MainContent').empty().append(data);
+						}
+					});
+		});
+	KaraCos.$(KaraCos.$("#store_page_nav_header li").get(${page})).addClass('ui-state-over');
+});
+</script>
+% endif
+ <div id="StoreContent">
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+ 	${storeitemsstring}
+ %endif
+ </div>
+<script language="javascript">
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+KaraCos(function() {
+% else:
+	KaraCos.config.page_id = '${instance.id}';
+	KaraCos.config.page_base_id = '${instance['parent_db']}';
+	KaraCos.authManager.authenticationHeader();
+%endif
+	KaraCos.Store.ready(function(store) {
+		try {
+			KaraCos('#aside_menu li').click(
+				function(event){
+					var url = KaraCos.$(this).find('a').attr("href");
+					event.stopImmediatePropagation();
+					event.preventDefault();
+					History.pushState(null, null, url);
+					KaraCos.$.ajax({
+						url: url,
+						headers: {'karacos-fragment': 'true'},
+						success: function(data) {
+							KaraCos('#MainContent').empty().append(data);
+						}
+					});
+				});
+			KaraCos('#aside_menu').menu({});
+			if (typeof store.show_page === "undefined") {
+				/* var appendEl = document.head,
+				    scriptEl = document.createElement('script');
+				scriptEl.src = '/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}';
+				//scriptEl.setAttribute('defer','defer');
+				appendEl.appendChild(scriptEl);
+			*/
+				KaraCos.$.ajax({
+	    			dataType : 'script',
+					url: "/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}",
+					async: false
+				});
+			}
+			store.show_page();
+		} catch(e) {
+			console.log(e);
+		}
+	});
+	KaraCos.Store.init_store({url:'${instance._get_action_url()}'});
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+});
+%endif
+</script>
+
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry

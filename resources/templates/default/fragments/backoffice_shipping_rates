@@ -1,0 +1,40 @@
+<% import karacos %>
+<% import sys, traceback %>
+% try:
+<% request = karacos.serving.get_request() %>
+<% session = karacos.serving.get_session() %>
+% if 'office_id' in request.str_params and 'base_id' in request.str_params:
+	<% office = karacos.base.db[request.str_params['base_id']].db[request.str_params['office_id']] %>
+	<% shipping_rates = office._get_shipping_rates() %>
+	<div id="get_shipping_rates">
+		<h3><a href="#">Existing rates</a></h3>
+		<div id="existing_shipping_rates">
+			% for rate in shipping_rates:
+				<div class="shipping_rate">Country: <span>${rate['country']}</span>, Weight:<span>${rate['weight']}</span>, Price: <span>${rate['price']}</span></div>
+			% endfor
+		</div>
+		<h3><a href="#">New Shipping rate</a></h3>
+		<div id="new_shipping_rate">
+			<form method="POST" action="${office._get_action_url()}">
+				<input type="hidden" name="method" value="set_shipping_rates"/>
+				<input type="text" name="country"/>
+				<input type="text" name="weight"/>
+				<input type="text" name="price"/>
+				<button>Mettre à jour</button>
+			</form>
+		</div>
+	</div>
+	<script language="javascript">
+		KaraCos.Store.BackOffice.shipping_ui(KaraCos('#get_shipping_rates'));
+	</script>
+%endif
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry

@@ -1,0 +1,72 @@
+<%
+import karacos 
+import sys, traceback %>
+% try:
+<% 
+request = karacos.serving.get_request()
+session = karacos.serving.get_session() %>
+% if 'office_id' in request.str_params and 'base_id' in request.str_params:
+	<% office = karacos.base.db[request.str_params['base_id']].db[request.str_params['office_id']] %>
+	<div id="kc_shopping_carts_admin">
+		<h3><a href="#">Orders to process</a></h3>
+		<div>
+			<table>
+				<% carts = office._get_shopping_carts(*(),**{'key':'payment_ok'}) %>
+				% for cart in carts:
+					<tr typeof="karacos:ShoppingCart" about="urn:uuid:${cart['_id']}">
+						<td property="status">${cart['status']}</td>
+						<td property="cart_id">${cart['_id']}</td>
+						<td property="last_modification_date">${cart['last_modification_date']}</td>
+						<td><button class="show_cart">voir</button></td>
+					</tr>
+				% endfor
+			</table>
+		</div>
+		<h3><a href="#">Awaiting tracking numbers</a></h3>
+		<div>
+			<table>
+				<% carts = office._get_shopping_carts(*(),**{'key':'shipment'}) %>
+				% for cart in carts:
+					<tr typeof="karacos:ShoppingCart" about="urn:uuid:${cart['_id']}">
+						<td property="status">${cart['status']}</td>
+						<td property="cart_id">${cart['_id']}</td>
+						<td property="last_modification_date">${cart['last_modification_date']}</td>
+						<td><button class="add_tracking_number">Saisir numero de suivi</button></td>
+					</tr>
+				% endfor
+			</table>
+		</div>
+		<h3><a href="#">All carts</a></h3>
+		<div  id="shopping_carts_grid">
+			<div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
+		        <div style="display: none" property="url">${office._get_action_url()}</div>
+		        <div style="display: none" property="criteria">canceled</div>
+		        Purge canceled cart
+	        </div>
+	         <div class="karacos_button" typeof="karacos:method" about="urn:uuid:${office.id}:purge_carts">
+		         <div style="display: none" property="url">${office._get_action_url()}</div>
+		         <div style="display: none" property="criteria">inactive</div>
+		         Purge open carts for inactive users/sessions
+	        </div>
+			<table>
+				<% carts = office._get_shopping_carts() %>
+				% for cart in carts:
+					<tr><td>${cart['status']}</td><td>${cart['_id']}</td><td>${cart['last_modification_date']}</td><td>${len(cart['items'])}</td></tr>
+				% endfor
+			</table>
+		</div>
+	</div>
+	<script language="javascript">
+		KaraCos.Store.BackOffice.carts_management_ui(KaraCos('#kc_shopping_carts_admin'));
+	</script>
+%endif
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry

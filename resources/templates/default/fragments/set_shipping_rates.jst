@@ -1,0 +1,20 @@
+<div id="set_shipping_rates">
+	{.section rates}
+	<h3><a href="#">Existing rates</a></h3>
+	<div id="existing_shipping_rates">
+		{.repeated section @}
+			<div class="shipping_rate">Country: <span>{country}</span>, Weight:<span>{weight}</span>, Price: <span>{price}</span></div>
+		{.end}
+	</div>
+	{.end}
+	<h3><a href="#">New Shipping rate</a></h3>
+	<div id="new_shipping_rate">
+		<form method="POST" action="{action}">
+			<input type="hidden" name="method" value="{method}"/>
+			<input type="text" name="country"/>
+			<input type="text" name="weight"/>
+			<input type="text" name="price"/>
+			<button>Mettre à jour</button>
+		</form>
+	</div>
+</div>

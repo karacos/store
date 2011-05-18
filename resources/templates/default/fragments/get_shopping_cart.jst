@@ -1,0 +1,98 @@
+<div id="shopping_cart_grid">
+{.section data}
+	<div class="cart_adr_panel">
+		<div class="shipping_adr_panel">
+		<div class="adr_display_box" >
+		<div class="adr_display_label" property="label">Adresse de livraison</div>
+		{.section shipping_adress}
+			
+			<div><span property="dest1stname">{dest1stname}</span>
+				<span property="destname">{destname}</span></div>
+			<div><span property="street_number">{street_number}</span>
+				<span property="street_address">{street_address}</span></div>
+			<div property="street_address1">{street_address1}</div>
+			<div><span property="postal_code">{postal_code}</span>
+				<span property="locality">{locality}</span></div>
+			<div><span property="region">{region}</span>
+				<span property="country">{country}</span></div>
+		{.or}
+			<div>
+			Pas d'adresse renseignée.
+			<span class="set_shipping_button">Cliquez ici pour renseigner une adresse de livraison</span>
+			</div>
+		{.end}
+		</div>
+		</div>
+		
+		<div class="billing_adr_panel">
+		<div class="adr_display_box" >
+		<div class="adr_display_label" property="label">Adresse de facturation</div>
+		{.section billing_adress}
+			
+			<div><span property="dest1stname">{dest1stname}</span>
+				<span property="destname">{destname}</span></div>
+			<div><span property="street_number">{street_number}</span>
+				<span property="street_address">{street_address}</span></div>
+			<div property="street_address1">{street_address1}</div>
+			<div><span property="postal_code">{postal_code}</span>
+				<span property="locality">{locality}</span></div>
+			<div><span property="region">{region}</span>
+				<span property="country">{country}</span></div>
+		{.or}
+			<div>
+			Pas d'adresse renseignée.
+			<span class="set_billing_button">Cliquez ici pour renseigner une adresse de facturation</span>
+			<span class="use_billing_as_shipping_button">Ou ici pour utiliser la meme adresse que cette de facturation</span>
+			</div>	
+		{.end}
+		</div>
+		</div>
+	</div> <!-- cart_adr_panel -->
+    {.section items}
+        <table border="1" margin="0" padding="0">
+        <tr>
+            <th style="width: 200px">Nom</th>
+            <th>Prix HT</th>
+            <th>Quantite</th>
+            <th>Prix TTC</th>
+            <th style="width: 6em">Total TTC</th>
+        </tr>
+        <tbody>
+        {.repeated section @}
+            <tr>
+                <td>{title}</td>
+                <td>{price|fprice}</td>
+                <td>
+                <div typeof="karacos:method" about="urn:uuid:{id}:set_number_item">
+                <div style="display: none" property="item_id">{id}</div>
+                <div style="display: none" property="url">{store_url}</div>
+                <div class="modify_in_cart_control">
+                    <div><div class="inc_number"/></div>
+                    <div class="item_number">
+                    <span property="number" class="item_cart_number">{number}</span>
+                    <div><div class="dec_number"/></div>
+                </div>
+               </td>
+                <td>{net_price|fprice}</td>
+                <td>{net_total|fprice}</td>
+            </tr>
+            {.end}
+            <tr><td colspan="4" style="text-align:right">Frais de port</td>
+                <td>{.section shipping_adr}{shipping}{.or}<div class="set_shipping_button">{shipping}</div>{.end}</td>
+            </tr>
+            <tr><td colspan="4" style="text-align:right">Total HT</td><td>{cart_total|fprice}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total TVA</td><td>{cart_tax_total|fprice}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total TTC</td><td>{cart_net_total|fprice}</td></tr>
+         </tbody>
+        </table>
+        <div class="pay_button" typeof="karacos:method"
+        about="urn:uuid:k-meche-store-paypal-button:pay_cart" url="{store_url}"
+         style="display:none;"><div style="display:none;" property="service">paypal_express</div>
+         <img src="/_server/k-meche/images/EC-button.gif"/></div>
+    {.or}
+      <p><em>(No items found)</em></p>
+    {.end}
+{.or}
+  <p><em>(No shopping cart)</em></p>
+{.end}
+</div>

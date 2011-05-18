@@ -1,0 +1,20 @@
+{.section forms}
+	{.repeated section @}
+		<h3><a href="#">{title}</a></h3>
+		<div><form method="POST" action="{store_url}">
+		<input type="hidden" name="method" value="set_services"/>
+		{.section fields}
+			<table>
+			{.repeated section @}
+				<tr><td>{title}</td><td><input type="text" name="{name}" 
+				{.section value}
+					value="{value}"
+				{.end}
+				/>
+			{.end}
+			</table>
+		{.end}
+		<button class="submit_service">{submit}</button>
+		</div>
+	{.end}
+{.end}

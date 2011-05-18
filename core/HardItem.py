@@ -57,14 +57,15 @@ class HardItem(karacos.db['StoreItem']):
         return self['stock']
     
     @karacos._db.isaction
-    def edit_item(self,title=None,content=None,buy_cost=None, weight=None, min_sell_price=None, public_price=None, tax=None, stock=None):
+    def edit_item(self,title=None,content=None,description=None,buy_cost=None, weight=None, min_sell_price=None, public_price=None, tax=None, stock=None):
         ""
         self['title'] = title
+        self['description'] = description
         self['content'] = content
         self['buy_cost'] = int(buy_cost)
         self['min_sell_price'] = int(min_sell_price)
         self['public_price'] = int(public_price)
-        self['tax'] = int(tax)
+        self['tax'] = float(tax)
         self['weight'] = int(weight)
         self['stock'] = int(stock)
         self.save()
@@ -131,7 +132,7 @@ class HardItem(karacos.db['StoreItem']):
         """
         When cart is payed
         """
-        number = cart['items'][item.id]
+        number = cart['items'][self.id]
         if number >= self['stock']:
             self['stock'] = 0
         else:

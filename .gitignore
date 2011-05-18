@@ -1,3 +1,5 @@
 *.pyc
 resources/android-test/bin
+*.class
+resources/android/gen
 resources/android/bin
