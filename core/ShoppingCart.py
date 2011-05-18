@@ -272,7 +272,8 @@ class ShoppingCart(karacos.db['Node']):
         self['status'] = 'cancel'
         self.save()
         session = karacos.serving.get_session()
-        del session['cart_id']
+        if 'cart_id' in session:
+            del session['cart_id']
         
     
     def _do_payment_cancelled(self,payment):

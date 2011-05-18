@@ -70,15 +70,15 @@ except:
 
 <aside class="inside">
 	<nav>
-	<% storefolders = instance._get_store_folders_by_id_()['data'] %>
+	<% storefolders = instance.__store__._get_store_folders_by_id_()['data'] %>
 		<ul id="aside_menu" role="listbox">
 			% for folder in storefolders:
-				<li role="menuitem"><a href="${instance._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
+				<li role="menuitem"><a href="${instance.__store__._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
 			%endfor
 		</ul>
 	</nav>
 </aside>
-
+<div id="MainContent">
 % if items['page_total'] > 1:
 <div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center">
 	<ul>
@@ -98,6 +98,21 @@ except:
 </div>
 <script language="javascript">
 KaraCos.Store.ready(function(store) {
+		KaraCos('#aside_menu li').click(
+			function(event){
+				var url = KaraCos.$(this).find('a').attr("href");
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				History.pushState(null, null, url);
+				KaraCos.$.ajax({
+					url: url,
+					headers: {'karacos-fragment': 'true'},
+					success: function(data) {
+						KaraCos('#MainContent').empty().append(data);
+					}
+				});
+			});
+		KaraCos('#aside_menu').menu({});
 	KaraCos.$("#store_page_nav_header li").button().click(
 		function(event){
 			event.stopImmediatePropagation();
@@ -170,7 +185,7 @@ KaraCos(function() {
 });
 %endif
 </script>
-
+</div>
 % except:
 	some errors :
 	<pre>

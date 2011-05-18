@@ -13,17 +13,7 @@ if 'page' in request.str_params:
 	page = int(request.str_params['page'])
 items = instance._get_items_list(instance._get_web_store_items_by_auth_,count,page)
 %>
-<!--
-${dir(request)}
-
-${request.query_string}
-
-${request._headers}
-
-${request.str_queryvars}
-
-${request.path_qs}
--->
+<div id="MainContent">
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 <%
 import jsontemplate
@@ -170,7 +160,7 @@ KaraCos(function() {
 });
 %endif
 </script>
-
+</div>
 % except:
 	some errors :
 	<pre>

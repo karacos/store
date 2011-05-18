@@ -15,28 +15,25 @@ if 'weight' not in instance:
     instance['weight'] = 100
     instance.save()
 %>
+<aside class="inside">
+	<nav>
+	<% storefolders = instance.__store__._get_store_folders_by_id_()['data'] %>
+		<ul id="aside_menu" role="listbox">
+			% for folder in storefolders:
+				<li role="menuitem"><a href="${instance.__store__._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
+			%endfor
+		</ul>
+	</nav>
+</aside>
+<div id="MainContent">
 <div class="inside" id="node_menu">
-<ul>
-<li><div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
-    <div style="display:none" property="item_id">${instance.id}</div>
-    <div style="display:none" property="url">${instance.__store__._get_action_url()}</div>
-    <div class="item_cart_control">
-        <div><div class="inc_number" ></div></div>
-        <div class="item_number">Quantité au panier : <span  property="number" class="item_cart_number">${number}</span></div>
-        <div><div class="dec_number" ></div></div>
-    </div>
-</div></li>
-</ul>
+	<ul>
+	<li></li>
+	</ul>
 </div>
 <article class="inside"
-% if isstaff:
- id="item_main_container" typeof="karacos:method" 
-	about="urn:uuid:${instance.id}:edit_item"
-% else:
 	id="store_main_container" typeof="karacos:HardItem" 
-	about="urn:uuid:${instance.id}"
-% endif
-	>
+	about="urn:uuid:${instance.id}" style="float:left"	>
 	<div style="display:none;" property="url">${instance._get_action_url()}</div>
 	<h1 class="kc_property inside" id="resource_title" property="title">${instance.__get_title__()}</h1>
 	<div class="kc_property inside" id="resource_description" property="description">${instance['description']}</div>
@@ -72,6 +69,16 @@ if 'weight' not in instance:
 		</div> 
 		## item_info
 </article> 
+<div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
+	    <div style="display:none" property="item_id">${instance.id}</div>
+	    <div style="display:none" property="url">${instance.__store__._get_action_url()}</div>
+	    <div class="item_cart_control">
+	        <div><div class="inc_number" ></div></div>
+	        <div class="item_number">Quantité au panier : <span  property="number" class="item_cart_number">${number}</span></div>
+	        <div><div class="dec_number" ></div></div>
+	    </div>
+	</div>
+</div>
 ## typeof (HardItem object)
 
 <script language="javascript">
@@ -82,6 +89,22 @@ if 'weight' not in instance:
 %else:
 KaraCos(function() {
 %endif
+		KaraCos('#aside_menu li').click(
+			function(event){
+				var url = KaraCos.$(this).find('a').attr("href");
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				History.pushState(null, null, url);
+				KaraCos.$.ajax({
+					url: url,
+					headers: {'karacos-fragment': 'true'},
+					success: function(data) {
+						KaraCos('#MainContent').empty().append(data);
+					}
+				});
+			});
+		KaraCos('#aside_menu').menu({});
+	
 	KaraCos("#store_menu ul li button.save_button").button()
 	.click(function(event) {
 		event.stopImmediatePropagation();
