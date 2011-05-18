@@ -13,27 +13,9 @@
 		(function(submenu){
 			var 
 			item;
-			actionwindow = KaraCos.actionMenu.actionWindow;;
-		% if 'publish_node' in node_actions and not instance._is_public():
-				item = KaraCos('<li id="publish_node_storeitem"><a href="#">Ouvrir la boutique</a></li>');
-				item.click(function(event){
-					KaraCos.action({ url: "${instance._get_action_url()}",
-					method: 'publish_node',
-					async: false,
-					params: {},
-					callback: function(data) {
-						if (data.success) {
-							actionwindow.empty().append(data.message);
-							actionwindow.dialog({width: '400px', modal:true}).show();
-						}
-					},
-					error: function(data) {
-							
-						}
-					});
-				});
-				submenu.append(item);
-		% endif
+			actionwindow = KaraCos.actionMenu.actionWindow;
+			
+		
 			})(submenu);
 		% if 'w_browse' in instance._get_backoffice_node()._get_actions():
 			(function(toolbar) {

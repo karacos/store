@@ -82,7 +82,7 @@ class Store(karacos.db['StoreParent']):
             }
         """
     def _publish_node(self):
-        karacos.db['WebNode']._publish_node(self)
+        karacos.db['StoreParent']._publish_node(self)
         if 'cancel_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
         if 'validate_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
@@ -95,8 +95,8 @@ class Store(karacos.db['StoreParent']):
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("set_number_item")
         if 'get_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_shopping_cart")
-        if 'get_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
-            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_items_list")
+        if 'get_store_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_store_items_list")
         
         custgrpname = 'group.customers@%s' % self.__domain__['name']
         if custgrpname not in self['ACL']:
@@ -131,7 +131,7 @@ class Store(karacos.db['StoreParent']):
     def _get_web_store_items_by_auth_(self,*args,**kw):
         """
         function(doc) {
-            if (doc.public_price && doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+            if (doc.public_price && doc.store_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
                 for (var auth in doc.ACL) {
                     if (doc.ACL[auth].join().search(/w_browse/) != -1) {
                         emit(auth,doc);
@@ -141,68 +141,11 @@ class Store(karacos.db['StoreParent']):
         }
         """
     @karacos._db.isaction
-    def get_items_list(self, count=None, page=None):
+    def get_store_items_list(self, count=None, page=None):
         count = int(count)
         page = int(page)
-        return self._get_items_list(count,page)
+        return self._get_items_list(self._get_web_store_items_by_auth_,count,page)
     
-    def _get_items_list(self, count, page):
-        ""
-        user = self.__domain__.get_user_auth()
-        cart = self.get_open_cart_for_user()
-        keys = [] + user['groups']
-        keys.append("user.%s" % user['name'])
-        results = self._get_web_store_items_by_auth_(*(), **{'keys':keys})
-        result = {'success': True, 
-                      'status': 'success',
-                      'data': [],
-                      'total': 0,
-                      'page_total': 0
-                      }
-        min = (page - 1) * count
-        max = page * count
-        current = 0
-        self.log.error("_get_items_list: results : %s" % results)
-        for item in results:
-            if min <= current and current < max:
-                image = ''
-                if 'image' in item.value:
-                    image = "/_atts/%s/%s" % (item.id,item.value['image'])
-                elif 'k_atts' in item.value:
-                    for file in item.value['k_atts']:
-                        if item.value['k_atts'][file]['type'].startswith('image') and image == '':
-                            image = "/_atts/%s/%s" % (item.id,file)
-                price = 0
-                if 'public_price' in item.value:
-                    price = item.value['public_price']
-                if price == None or price == "":
-                    price = 0
-                price = "%.2f" % float(price)
-                if 'content' in item.value and 'title' in item.value:
-                    description = ""
-                    if 'description' not in item.value:
-                        description = item.value['content']
-                    else:
-                        description = item.value['description']
-                    number = 0
-                    if item.id in cart['items']:
-                        number = cart['items'][item.id]
-                    result['data'].append({'id': item.id,
-                                           'name': item.value['name'],
-                                           'url': "%s/%s" % (self._get_action_url(),item.value['name']),
-                                           'store_url': self._get_action_url(),
-                                           'description': description,
-                                           'image': image,
-                                           'price': price,
-                                           'number': number,
-                                           'title': item.value['title']
-                                           })
-            current = current + 1
-        result['total'] = current
-        result['page_total'] = current / count
-        if current % count != 0:
-            result['page_total'] = result['page_total'] +1 
-        return result
     
     @karacos._db.isaction
     def publish_node(self):

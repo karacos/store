@@ -11,7 +11,7 @@ if 'count' in request.str_params:
 	count = int(request.str_params['count'])
 if 'page' in request.str_params:
 	page = int(request.str_params['page'])
-items = instance._get_items_list(instance._get_web_store_items_by_auth_,count,page)
+items = instance._get_items_list(instance._get_items_by_auth_,count,page)
 %>
 <!--
 ${dir(request)}
