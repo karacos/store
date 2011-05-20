@@ -130,6 +130,19 @@ class StoreItem(karacos.db['Resource']):
         """
         """
     
+    @karacos._db.isaction
+    def set_main_pic(self,main_pic=None ):
+        """
+        Sets main image picture
+        """
+        assert main_pic != None
+        assert 'k_atts' in self
+        assert main_pic in self['k_atts']
+        self['main_pic'] = main_pic
+        self.save()
+        return {'success': True, 'message':"Main picture modified"}
+        
+    
     def _do_cart_validation(self,cart):
         """
         While cart validation, tells if this item has to be shipped (or other requirement, implemented in type itself)

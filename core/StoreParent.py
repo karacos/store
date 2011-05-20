@@ -161,7 +161,7 @@ class StoreParent(karacos.db['WebNode']):
         for item in results:
             if min <= current and current < max:
                 image = ''
-                if 'image' in item.value:
+                if 'main_pic' in item.value:
                     image = "/_atts/%s/%s" % (item.id,item.value['image'])
                 elif 'k_atts' in item.value:
                     for file in item.value['k_atts']:

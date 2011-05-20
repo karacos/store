@@ -67,6 +67,35 @@
 		submenu.find("#publish_node_storeitem").show();
 		submenu.find("#unpublish_node_storeitem").hide();
 	%endif
+	% if 'set_main_pic' in node_actions:
+		item = KaraCos('<li id="unpublish_node_storeitem"><a href="#">Image principale</a></li>');
+		item.click(function(){
+			KaraCos.Browser({'panels':
+				[{  type:'grid',
+					template: '/fragment/set_main_pic_grid.jst',
+					selectiontype: 'single',
+					datasource:{
+						type:'json',
+						url:'${instance._get_action_url()}',
+						params: {method:'get_atts', id:1, params:{}}
+					},
+					onselect: function(item){
+						KaraCos.action({ url: "${instance._get_action_url()}",
+							method: 'set_main_pic',
+							async: false,
+							params: {main_pic:''},
+							callback: function(data) {
+								if (data.success) {
+									KaraCos.Browser.hide();
+								}
+							}
+						});
+					}
+				}]
+			});
+		});
+		submenu.append(item);
+	% endif
 	item = KaraCos('<li><a href="#">Resource</a><li>');
 	subsubmenu = KaraCos('<ul></ul>');
 	submenu.append(item);
