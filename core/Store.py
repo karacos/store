@@ -131,7 +131,7 @@ class Store(karacos.db['StoreParent']):
     def _get_web_store_items_by_auth_(self,*args,**kw):
         """
         function(doc) {
-            if (doc.public_price && doc.store_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+            if (doc.public_price !== undefined && doc.store_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
                 for (var auth in doc.ACL) {
                     if (doc.ACL[auth].join().search(/w_browse/) != -1) {
                         emit(auth,doc);

@@ -21,5 +21,3 @@ class StoreFolder(karacos.db['StoreParent']):
         if 'WebType' not in data:
             data['WebType'] = 'StoreFolder'
         return karacos.db['WebNode'].create(parent=parent,base=False,data=data)
-  
-  

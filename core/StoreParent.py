@@ -126,7 +126,7 @@ class StoreParent(karacos.db['WebNode']):
     def _get_items_by_auth_(self,*args,**kw):
         """
         function(doc) {
-            if (doc.public_price && doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
+            if (doc.public_price !== undefined && doc.parent_id == "%s" && !("_deleted" in doc && doc._deleted == true)) {
                 for (var auth in doc.ACL) {
                     if (doc.ACL[auth].join().search(/w_browse/) != -1) {
                         emit(auth,doc);
@@ -144,7 +144,7 @@ class StoreParent(karacos.db['WebNode']):
     def _get_items_list(self,view, count, page):
         ""
         user = self.__domain__.get_user_auth()
-        cart = self.get_open_cart_for_user()
+        cart = self.__store__.get_open_cart_for_user()
         keys = [] + user['groups']
         keys.append("user.%s" % user['name'])
         results = view(*(), **{'keys':keys})
