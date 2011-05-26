@@ -13,7 +13,7 @@ if 'page' in request.str_params:
 	page = int(request.str_params['page'])
 items = instance._get_items_list(instance._get_web_store_items_by_auth_,count,page)
 %>
-<div id="MainContent">
+
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 <%
 import jsontemplate
@@ -95,13 +95,13 @@ KaraCos.Store.ready(function(store) {
 			var $this = KaraCos.$(this), url;
 			url = $this.find('a').attr("href");
 			History.pushState(null, null, url);
-					KaraCos.$.ajax({
-						url: url,
-						headers: {'Karacos-Fragment': 'true'},
-						success: function(data) {
-							KaraCos('#MainContent').empty().append(data);
-						}
-					});
+			KaraCos.$.ajax({
+				url: url,
+				headers: {'Karacos-Fragment': 'true'},
+				success: function(data) {
+					KaraCos('#MainContent').empty().append(data);
+				}
+			});
 		});
 	KaraCos.$(KaraCos.$("#store_page_nav_header li").get(${page})).addClass('ui-state-over');
 });
@@ -160,7 +160,6 @@ KaraCos(function() {
 });
 %endif
 </script>
-</div>
 % except:
 	some errors :
 	<pre>

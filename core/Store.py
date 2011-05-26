@@ -121,12 +121,6 @@ class Store(karacos.db['StoreParent']):
         
         self.save()
     
-    def _is_public(self):    
-        if 'public' not in self:
-            self['public'] = False
-            self.save()
-        return self['public']
-    
     @karacos._db.ViewsProcessor.isview('self', 'javascript')
     def _get_web_store_items_by_auth_(self,*args,**kw):
         """

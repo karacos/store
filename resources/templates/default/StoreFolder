@@ -13,17 +13,6 @@ if 'page' in request.str_params:
 	page = int(request.str_params['page'])
 items = instance._get_items_list(instance._get_items_by_auth_,count,page)
 %>
-<!--
-${dir(request)}
-
-${request.query_string}
-
-${request._headers}
-
-${request.str_queryvars}
-
-${request.path_qs}
--->
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 <%
 import jsontemplate
@@ -78,7 +67,7 @@ except:
 		</ul>
 	</nav>
 </aside>
-<div id="MainContent">
+<div id="StoreContent">
 % if items['page_total'] > 1:
 <div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center">
 	<ul>
@@ -132,7 +121,7 @@ KaraCos.Store.ready(function(store) {
 });
 </script>
 % endif
- <div id="StoreContent">
+<div id="StoreContent">
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
  	${storeitemsstring}
  %endif
@@ -162,25 +151,25 @@ KaraCos(function() {
 					});
 				});
 			KaraCos('#aside_menu').menu({});
-			if (typeof store.show_page === "undefined") {
+			if (typeof store.show_folder === "undefined") {
 				/* var appendEl = document.head,
 				    scriptEl = document.createElement('script');
-				scriptEl.src = '/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}';
+				scriptEl.src = '/fragment/StoreFolder.js?folder_id=${instance.id}&base_id=${instance['parent_db']}';
 				//scriptEl.setAttribute('defer','defer');
 				appendEl.appendChild(scriptEl);
 			*/
 				KaraCos.$.ajax({
 	    			dataType : 'script',
-					url: "/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}",
+					url: "/fragment/StoreFolder.js?folder_id=${instance.id}&base_id=${instance['parent_db']}",
 					async: false
 				});
 			}
-			store.show_page();
+			store.show_folder();
 		} catch(e) {
 			console.log(e);
 		}
 	});
-	KaraCos.Store.init_store({url:'${instance._get_action_url()}'});
+	KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 });
 %endif

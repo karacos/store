@@ -36,7 +36,11 @@ class StoreParent(karacos.db['WebNode']):
         self._publish_node()
         return {'status':'success', 'message':_("Le dossier est maintenant visible de tous"), 'success': True} 
     publish_node.label = _("Publier dossier boutique")
-    
+    def _is_public(self):    
+        if 'public' not in self:
+            self['public'] = False
+            self.save()
+        return self['public']
     @karacos._db.isaction
     def create_store_folder(self,*args,**kw):
         return self._create_child_node(data=kw,type='StoreFolder')
@@ -80,8 +84,11 @@ class StoreParent(karacos.db['WebNode']):
                       'data': [],
                       'total': 0
                       }
+        ids = []
         for item in results:
-            result['data'].append({'id': item.key,'name': item.value['name'],'label': item.value['label']})
+            if item.id not in ids:
+                result['data'].append({'id': item.id,'name': item.value['name'],'label': item.value['label']})
+                ids.append(item.id)
         total = len(results)
         return result
     
@@ -158,41 +165,44 @@ class StoreParent(karacos.db['WebNode']):
         max = page * count
         current = 0
         self.log.error("_get_items_list: results : %s" % results)
+        items_id = []
         for item in results:
-            if min <= current and current < max:
-                image = ''
-                if 'main_pic' in item.value:
-                    image = "/_atts/%s/%s" % (item.id,item.value['image'])
-                elif 'k_atts' in item.value:
-                    for file in item.value['k_atts']:
-                        if item.value['k_atts'][file]['type'].startswith('image') and image == '':
-                            image = "/_atts/%s/%s" % (item.id,file)
-                price = 0
-                if 'public_price' in item.value:
-                    price = item.value['public_price']
-                if price == None or price == "":
+            if item.id not in items_id: # Prevent multiple entries
+                items_id.append(item.id)
+                if min <= current and current < max:
+                    image = ''
+                    if 'main_pic' in item.value:
+                        image = "/_atts/%s/%s" % (item.id,item.value['image'])
+                    elif 'k_atts' in item.value:
+                        for file in item.value['k_atts']:
+                            if item.value['k_atts'][file]['type'].startswith('image') and image == '':
+                                image = "/_atts/%s/%s" % (item.id,file)
                     price = 0
-                price = "%.2f" % float(price)
-                if 'content' in item.value and 'title' in item.value:
-                    description = ""
-                    if 'description' not in item.value:
-                        description = item.value['content']
-                    else:
-                        description = item.value['description']
-                    number = 0
-                    if item.id in cart['items']:
-                        number = cart['items'][item.id]
-                    result['data'].append({'id': item.id,
-                                           'name': item.value['name'],
-                                           'url': "%s/%s" % (self._get_action_url(),item.value['name']),
-                                           'store_url': self._get_action_url(),
-                                           'description': description,
-                                           'image': image,
-                                           'price': price,
-                                           'number': number,
-                                           'title': item.value['title']
-                                           })
-            current = current + 1
+                    if 'public_price' in item.value:
+                        price = item.value['public_price']
+                    if price == None or price == "":
+                        price = 0
+                    price = "%.2f" % float(price)
+                    if 'content' in item.value and 'title' in item.value:
+                        description = ""
+                        if 'description' not in item.value:
+                            description = item.value['content']
+                        else:
+                            description = item.value['description']
+                        number = 0
+                        if item.id in cart['items']:
+                            number = cart['items'][item.id]
+                        result['data'].append({'id': item.id,
+                                               'name': item.value['name'],
+                                               'url': "%s/%s" % (self._get_action_url(),item.value['name']),
+                                               'store_url': self._get_action_url(),
+                                               'description': description,
+                                               'image': image,
+                                               'price': price,
+                                               'number': number,
+                                               'title': item.value['title']
+                                               })
+                current = current + 1
         result['total'] = current
         result['page_total'] = current / count
         if current % count != 0:

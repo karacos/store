@@ -99,7 +99,7 @@
 		submenu.append(button);
 	%endif
 	% if 'publish_node' in node_actions and not instance._is_public():
-		item = KaraCos('<li id="publish_node_storeitem"><a href="#">Ouvrir la boutique</a></li>');
+		item = KaraCos('<li id="publish_node_storeitem"><a href="#">Ouvrir au public</a></li>');
 		item.click(function(event){
 			KaraCos.action({ url: "${instance._get_action_url()}",
 			method: 'publish_node',

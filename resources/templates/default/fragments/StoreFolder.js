@@ -3,14 +3,14 @@
 % try:
 	<% request = karacos.serving.get_request() %>
 	<% session = karacos.serving.get_session() %>
-	% if 'store_id' in request.str_params and 'base_id' in request.str_params:
-		<% instance = karacos.base.db[request.str_params['base_id']].db[request.str_params['store_id']] %>
+	% if 'folder_id' in request.str_params and 'base_id' in request.str_params:
+		<% instance = karacos.base.db[request.str_params['base_id']].db[request.str_params['folder_id']] %>
 try {
 	(function(){
 		store = KaraCos.Store;
-		store.show_page = function(){
+		store.show_folder = function(){
 			var store = this;
-			console.log("Running show_page");
+			console.log("Running show_folder");
 			store.page = {};
 			try {
 				var template,
@@ -21,8 +21,8 @@ try {
 					async: false,
 					success: function(jstsrc) {
 						template = jsontemplate.Template(jstsrc, KaraCos.jst_options);
-						KaraCos.action({ url: store.store_url,
-							method: "get_store_items_list",
+						KaraCos.action({ url: ${instance._get_action_url()},
+							method: "get_items_list",
 							async: false,
 							params:{count:9,page:1},
 							callback: function(data) {
@@ -39,7 +39,7 @@ try {
 //							});
 									store.activate_item_cart_buttons();							
 								} catch(e) {
-									console.log("Exception in show_page");
+									console.log("Exception in show_folder");
 									console.log(e);
 								}
 							}
