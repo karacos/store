@@ -14,7 +14,7 @@
 		item = KaraCos('<li><a href="#">Créer un dossier</a></li>');
 		item.click(function(){
 					KaraCos.getForm({
-						url: "${instance._get_action_url()}",
+						url: '${instance._get_action_url()}',
 						form: "create_store_folder",
 						callback: function(data, form) {
 							var create_child_node_template = jsontemplate.Template(form, KaraCos.jst_options);
@@ -30,7 +30,7 @@
 										params[field.name] = field.value;
 									}
 								}); // each
-								KaraCos.action({ url: "${instance._get_action_url()}",
+								KaraCos.action({ url: '${instance._get_action_url()}',
 									method: method,
 									async: false,
 									params: params,
@@ -60,7 +60,7 @@
 			event.stopImmediatePropagation();
 			event.preventDefault();
 					KaraCos.getForm({
-						url: "${instance._get_action_url()}",
+						url: '${instance._get_action_url()}',
 						form: "create_storeitem",
 						callback: function(data, form) {
 							var create_child_node_template = jsontemplate.Template(form, KaraCos.jst_options);
@@ -76,7 +76,7 @@
 										params[field.name] = field.value;
 									}
 								}); // each
-								KaraCos.action({ url: "${instance._get_action_url()}",
+								KaraCos.action({ url: '${instance._get_action_url()}',
 									method: method,
 									async: false,
 									params: params,
@@ -101,7 +101,7 @@
 	% if 'publish_node' in node_actions and not instance._is_public():
 		item = KaraCos('<li id="publish_node_storeitem"><a href="#">Ouvrir au public</a></li>');
 		item.click(function(event){
-			KaraCos.action({ url: "${instance._get_action_url()}",
+			KaraCos.action({ url: '${instance._get_action_url()}',
 			method: 'publish_node',
 			async: false,
 			params: {},

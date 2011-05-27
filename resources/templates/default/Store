@@ -58,7 +58,7 @@ except:
 	
 % endif
 
-<aside class="inside">
+<aside>
 	<nav>
 	<% storefolders = instance._get_store_folders_by_id_()['data'] %>
 		<ul id="aside_menu" role="listbox">

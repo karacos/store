@@ -21,7 +21,7 @@ try {
 					async: false,
 					success: function(jstsrc) {
 						template = jsontemplate.Template(jstsrc, KaraCos.jst_options);
-						KaraCos.action({ url: ${instance._get_action_url()},
+						KaraCos.action({ url: '${instance._get_action_url()}',
 							method: "get_items_list",
 							async: false,
 							params:{count:9,page:1},
