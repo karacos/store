@@ -27,7 +27,7 @@ class StoreParent(karacos.db['WebNode']):
         if 'get_store_folders' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_store_folders")
         if 'get_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
-            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_store_list")
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_items_list")
         self['public'] = True
         self.save()
     
@@ -36,11 +36,24 @@ class StoreParent(karacos.db['WebNode']):
         self._publish_node()
         return {'status':'success', 'message':_("Le dossier est maintenant visible de tous"), 'success': True} 
     publish_node.label = _("Publier dossier boutique")
+    
     def _is_public(self):    
         if 'public' not in self:
             self['public'] = False
             self.save()
         return self['public']
+    
+    def _unpublish_node(self):
+        karacos.db['WebNode']._unpublish_node(self)
+        self['public'] = False
+        self.save()
+    
+    @karacos._db.isaction
+    def unpublish_node(self):
+        self._unpublish_node()
+        return {'status':'success', 'message':_("Le dossier est maintenant ferme au public"), 'success': True} 
+    publish_node.label = _("Publier dossier boutique")
+    
     @karacos._db.isaction
     def create_store_folder(self,*args,**kw):
         return self._create_child_node(data=kw,type='StoreFolder')

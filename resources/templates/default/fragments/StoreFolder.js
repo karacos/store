@@ -8,7 +8,7 @@
 try {
 	(function(){
 		store = KaraCos.Store;
-		store.show_folder = function(){
+		store.show_folder = function(folder_url){
 			var store = this;
 			console.log("Running show_folder");
 			store.page = {};
@@ -21,7 +21,7 @@ try {
 					async: false,
 					success: function(jstsrc) {
 						template = jsontemplate.Template(jstsrc, KaraCos.jst_options);
-						KaraCos.action({ url: '${instance._get_action_url()}',
+						KaraCos.action({ url: folder_url,
 							method: "get_items_list",
 							async: false,
 							params:{count:9,page:1},

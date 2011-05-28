@@ -98,7 +98,29 @@
 				});
 		submenu.append(button);
 	%endif
-	% if 'publish_node' in node_actions and not instance._is_public():
+	% if 'unpublish_node' in node_actions:
+		item = KaraCos('<li id="unpublish_node_storeitem"><a href="#">Fermer au public</a></li>');
+		item.click(function(event){
+			KaraCos.action({ url: '${instance._get_action_url()}',
+			method: 'unpublish_node',
+			async: false,
+			params: {},
+			callback: function(data) {
+				if (data.success) {
+					actionwindow.empty().append(data.message);
+					actionwindow.dialog({width: '400px', modal:true}).show();
+					$('#publish_node_storeitem').show();
+					$('#unpublish_node_storeitem').hide();
+				}
+			},
+			error: function(data) {
+					
+				}
+			});
+		});
+		submenu.append(item);
+	% endif
+	% if 'publish_node' in node_actions:
 		item = KaraCos('<li id="publish_node_storeitem"><a href="#">Ouvrir au public</a></li>');
 		item.click(function(event){
 			KaraCos.action({ url: '${instance._get_action_url()}',
@@ -109,6 +131,8 @@
 				if (data.success) {
 					actionwindow.empty().append(data.message);
 					actionwindow.dialog({width: '400px', modal:true}).show();
+					$('#publish_node_storeitem').hide();
+					$('#unpublish_node_storeitem').show();
 				}
 			},
 			error: function(data) {
@@ -117,7 +141,14 @@
 			});
 		});
 		submenu.append(item);
-% endif
+	% endif
+	% if instance._is_public():
+		$('#publish_node_storeitem').hide();
+		$('#unpublish_node_storeitem').show();
+	%else:
+		$('#publish_node_storeitem').show();
+		$('#unpublish_node_storeitem').hide();
+	% endif
 })(submenu);
 % endif
 % except:

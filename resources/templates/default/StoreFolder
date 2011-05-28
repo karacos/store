@@ -164,7 +164,7 @@ KaraCos(function() {
 					async: false
 				});
 			}
-			store.show_folder();
+			store.show_folder('${instance._get_action_url()}');
 		} catch(e) {
 			console.log(e);
 		}
