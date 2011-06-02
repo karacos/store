@@ -69,7 +69,7 @@ except:
 </aside>
 <div id="StoreContent">
 % if items['page_total'] > 1:
-<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center">
+<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center ; margin-left: 160px;">
 	<ul>
 	% if page > 1:
 		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page -1 %>">&lt; Pr&eacute;c&eacute;dent</a></li>
@@ -164,7 +164,7 @@ KaraCos(function() {
 					async: false
 				});
 			}
-			store.show_folder('${instance._get_action_url()}');
+			store.show_folder('${instance._get_action_url()}', ${count}, ${page});
 		} catch(e) {
 			console.log(e);
 		}

@@ -45,7 +45,7 @@ KaraCos.Store = {
 						/**
 						 * Formatter for numbers in jsontemplates
 						 */
-						KaraCos.jst_options.more_formatters['fprice'] = function (s) { 
+						KaraCos.jst_options.more_formatters['fprice'] = function (s) {
 							number = Number(s);
 							return (number.toFixed(2)).toString();
 						};

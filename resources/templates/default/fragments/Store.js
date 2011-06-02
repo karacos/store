@@ -8,7 +8,7 @@
 try {
 	(function(){
 		store = KaraCos.Store;
-		store.show_page = function(){
+		store.show_page = function(count,page){
 			var store = this;
 			console.log("Running show_page");
 			store.page = {};
@@ -24,7 +24,7 @@ try {
 						KaraCos.action({ url: store.store_url,
 							method: "get_store_items_list",
 							async: false,
-							params:{count:9,page:1},
+							params:{count:count,page:page},
 							callback: function(data) {
 								var main_content = KaraCos('#StoreContent');
 								console.log("items list fetched");

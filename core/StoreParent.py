@@ -183,9 +183,10 @@ class StoreParent(karacos.db['WebNode']):
             if item.id not in items_id: # Prevent multiple entries
                 items_id.append(item.id)
                 if min <= current and current < max:
+                    dbitem = self.db[item.id]
                     image = ''
                     if 'main_pic' in item.value:
-                        image = "/_atts/%s/%s" % (item.id,item.value['image'])
+                        image = "/_atts/%s/%s" % (item.id,item.value['main_pic'])
                     elif 'k_atts' in item.value:
                         for file in item.value['k_atts']:
                             if item.value['k_atts'][file]['type'].startswith('image') and image == '':
@@ -207,8 +208,8 @@ class StoreParent(karacos.db['WebNode']):
                             number = cart['items'][item.id]
                         result['data'].append({'id': item.id,
                                                'name': item.value['name'],
-                                               'url': "%s/%s" % (self._get_action_url(),item.value['name']),
-                                               'store_url': self._get_action_url(),
+                                               'url': dbitem._get_action_url(),
+                                               'store_url': self.__store__._get_action_url(),
                                                'description': description,
                                                'image': image,
                                                'price': price,

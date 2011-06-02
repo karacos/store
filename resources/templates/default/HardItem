@@ -36,6 +36,14 @@ if 'weight' not in instance:
 	about="urn:uuid:${instance.id}" style="float:left"	>
 	<div style="display:none;" property="url">${instance._get_action_url()}</div>
 	<h1 class="kc_property inside" id="resource_title" property="title">${instance.__get_title__()}</h1>
+<% 
+image = None
+if 'main_pic' in instance:
+    image = "/_atts/%s/%s" % (instance.id,instance['main_pic'])
+%>
+	% if image != None:
+		<img class="kc_att" src="${image}" style="max-width: 120px; float: left"/>
+	%endif
 	<div class="kc_property inside" id="resource_description" property="description">${instance['description']}</div>
 	<div class="kc_property inside" id="resource_content" property="content">${instance.__get_content__()}</div>
 		<div class=inside" id="item_info">
@@ -69,6 +77,7 @@ if 'weight' not in instance:
 		</div> 
 		## item_info
 </article> 
+<div class="" style="float:left; width: 200px">
 <div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
 	    <div style="display:none" property="item_id">${instance.id}</div>
 	    <div style="display:none" property="url">${instance.__store__._get_action_url()}</div>
@@ -78,7 +87,13 @@ if 'weight' not in instance:
 	        <div><div class="dec_number" ></div></div>
 	    </div>
 	</div>
+<div class="inside">
+<ul id="hardItem_side_menu" >
+</ul>
 </div>
+</div>
+
+
 ## typeof (HardItem object)
 
 <script language="javascript">
@@ -89,6 +104,15 @@ if 'weight' not in instance:
 %else:
 KaraCos(function() {
 %endif
+		(function(submenu){
+		if (typeof KaraCos.actionMenu === "undefined") {
+			KaraCos.actionMenu = {};
+			KaraCos.actionMenu.actionWindow = KaraCos('<div/>');
+			KaraCos('body').append(KaraCos.actionMenu.actionWindow);
+		}
+				<%include file="${instance.get_menu_template_uri()}"/>
+		})(KaraCos('#hardItem_side_menu'));
+		KaraCos('#hardItem_side_menu').menu();
 		KaraCos('#aside_menu li').click(
 			function(event){
 				var url = KaraCos.$(this).find('a').attr("href");
@@ -131,6 +155,35 @@ KaraCos(function() {
 					}
 				}});
 	});
+	$("img.kc_att").click(function(event){
+			var $this = $(this),
+				max_width = 800, $img,
+				att_show = $('#kc_att_show'),
+				imgwidth, imgheight, ratio;
+			if (att_show.length === 0) {
+				att_show = $('<div id="kc_att_show"/>');
+				$('body').append(att_show.hide());
+			}
+			$img = $('<img>').attr("src",$this.attr("src"));
+			att_show.empty().append($img);
+			att_show.dialog({modal: true});
+			imgwidth = att_show.find('img').innerWidth();
+			imgheight = att_show.find('img').innerHeight();
+			if ( imgheight > att_show.innerHeight()) {
+				ratio = imgheight / att_show.innerHeight();
+				imgheight = att_show.innerHeight();
+				imgwidth = imgwidth / ratio;
+			}
+			if ( imgwidth > max_width) {
+				ratio = imgwidth / max_width;
+				imgwidth = max_width;
+				imgheight = imgheight / ratio;
+			}
+			att_show.dialog("option", "height",imgheight+10);
+			att_show.dialog("option", "width",imgwidth+10);
+			$img.width(imgwidth).height(imgheight);
+			
+		});
 KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 	});

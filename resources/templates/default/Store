@@ -70,10 +70,10 @@ except:
 </aside>
 
 % if items['page_total'] > 1:
-<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center">
+<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center ; margin-left: 160px;">
 	<ul>
 	% if page > 1:
-		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page -1 %>">&lt; Pr&eacute;c&eacute;dent</a></li>
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=${ page -1 }">&lt; Pr&eacute;c&eacute;dent</a></li>
 	%endif
 	<% pageid = 1 %>
 	% while ( pageid <= items['page_total']):
@@ -82,7 +82,7 @@ except:
 	% endwhile
 	
 	% if page < items['page_total']:
-		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page +1 %>">Suivant &gt;</a></li>
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=${ page + 1 }">Suivant &gt;</a></li>
 	%endif
 	</ul>
 </div>
@@ -150,7 +150,7 @@ KaraCos(function() {
 					async: false
 				});
 			}
-			store.show_page();
+			store.show_page(${count},${page});
 		} catch(e) {
 			console.log(e);
 		}
