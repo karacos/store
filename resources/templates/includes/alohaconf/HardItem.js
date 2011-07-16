@@ -72,14 +72,41 @@
 								}
 						},
 						"image": {
-					   					config : { 'img': { 'max_width': '50px',
-												'max_height': '50px' }},
+		   					config : { 'img': 
+		   						{ 'max_width': '50px',
+									'max_height': '50px'
+		   						}
+		   					},
 						  	editables : {
 								'[property*="title"]'	: {},
 								'[property*="number"]'	: {},
 								'[property*="price"]'	: {}
-								
-						  	}
+							}
+						},
+						"inputcontrol": {
+							editables: {
+								'.store_price': {
+									disableEnter: true,
+									enableFilter: true,
+									allowchars: new RegExp('[0-9\.]'),
+									enableMask: true,
+									type: Number
+								},
+								'.store_weight': {
+									disableEnter: true,
+									enableFilter: true,
+									allowchars: new RegExp('[0-9]'),
+									enableMask: true,
+									type: Number
+								},
+								'.store_stock': {
+									disableEnter: true,
+									enableFilter: true,
+									allowchars: new RegExp('[0-9]'),
+									enableMask: true,
+									type: Number
+								}
+							}
 						}
 						/*
 						,"com.gentics.aloha.plugins.List": {

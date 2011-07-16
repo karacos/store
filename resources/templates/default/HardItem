@@ -49,7 +49,7 @@ if 'main_pic' in instance:
 		<div class=inside" id="item_info">
 		% try:
 			<div id="item_price">
-			Prix : <span property="public_price">${instance['public_price']}</span>
+			Prix : <span class="store_price" property="public_price">${instance['public_price']}</span>
 			</div>
 			## item_price
 			<div id="item_weight"
@@ -57,17 +57,17 @@ if 'main_pic' in instance:
 				style="display:none;"
 			% endif
 			>
-			Poids : <span property="weight">${instance['weight']}</span>
+			Poids : <span class="store_weight" property="weight">${instance['weight']}</span>
 			</div>
 			% if isstaff:
 				%if 'stock' not in instance:
             		<% instance['stock'] = 0 %>
             	% endif
 			<div id="admin_properties">
-				<div>Prix d'achat : <span property="buy_cost">${instance['buy_cost']}</span></div>
-				<div>Prix de vente mini : <span property="min_sell_price">${instance['min_sell_price']}</span></div>
-				<div>stock : <span property="stock">${instance['stock']}</span></div>
-				<div>Taxe : <span property="tax">${instance['tax']}</span></div>
+				<div>Prix d'achat : <span class="store_price" property="buy_cost">${instance['buy_cost']}</span></div>
+				<div>Prix de vente mini : <span class="store_price" property="min_sell_price">${instance['min_sell_price']}</span></div>
+				<div>stock : <span class="store_stock" property="stock">${instance['stock']}</span></div>
+				<div>Taxe : <span class="store_price" property="tax">${instance['tax']}</span></div>
 			</div> 
 			## admin_properties
 			% endif
