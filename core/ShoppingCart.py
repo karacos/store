@@ -114,16 +114,7 @@ class ShoppingCart(karacos.db['Node']):
         """
     
     def _get_cart_array(self):
-                
-#        if 'validated' not in self:
-#            try:
-#                for item_key in self['items'].keys() :
-#                    self.db[item_key]._do_cart_validation(self)
-#                result['requires'] = 'billing'
-#            except:
-#                result['requires'] = 'shipping'
-#        else:
-#            result['requires'] = 'meet'
+
         if 'cart_array' not in self:
             self['cart_array'] = []
             self.save()
@@ -141,7 +132,7 @@ class ShoppingCart(karacos.db['Node']):
             result['billing_adress'] = self._get_billing_adr()
         if 'shipping_adr' in self:
             try:
-                result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'],result['cart_total_weight'])
+                result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'].lower(),int(result['cart_total_weight']))
                 result['shipping_adr'] = self['shipping_adr']
                 result['shipping_adress'] = self._get_shipping_adr()
             except:

@@ -112,15 +112,30 @@ KaraCos.Store.ready(function(store) {
  	${storeitemsstring}
  %endif
  </div>
+ <div class="inside">
+<fb:like href="http://${instance.__domain__['fqdn']}${instance._get_action_url()}" send="true" width="450" show_faces="true" font="lucida grande"></fb:like>
+</div>
 <script language="javascript">
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 KaraCos(function() {
 % else:
-	KaraCos.config.page_id = '${instance.id}';
-	KaraCos.config.page_base_id = '${instance['parent_db']}';
+	KaraCos.change_page({
+		id : '${instance.id}',
+		base_id : '${instance['parent_db']}',
+		url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
+		type: 'activity',
+		title: '${instance.__get_title__()}'
+		% if 'description' in instance:
+			,description: "${instance['description']}"
+		% endif
+		% if 'keywords' in instance:
+			,keywords: "${instance['keywords']}"
+		% endif
+	});
 	KaraCos.authManager.authenticationHeader();
 %endif
 	KaraCos.Store.ready(function(store) {
+		KaraCos.parse_FBML();
 		try {
 			KaraCos('#aside_menu li').click(
 				function(event){
