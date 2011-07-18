@@ -77,7 +77,7 @@ class StoreItem(karacos.db['Resource']):
                  ] }
     
     @karacos._db.isaction
-    def edit_storeitem(self,*args,**kw):
+    def _update(self,*args,**kw):
         """
          Modify properties of item
         """
@@ -85,11 +85,13 @@ class StoreItem(karacos.db['Resource']):
         kw['price'] = float(kw['price'])
         assert 'tax' in kw
         kw['tax'] = float(kw['tax'])
-        assert 'shipping' in kw
-        kw['shipping'] = float(kw['shipping'])
         self.update(kw)
+        if self['price'] == 0:
+            assert self['public_price'] != 0
+        else:
+            self['public_price'] = self['price'] + self['price'] * self['tax']
         self.save()
-    edit_storeitem.get_form = _edit_storeitem_form
+    _update.get_form = _edit_storeitem_form
     
     
     def _do_add_validation(self,cart,number):

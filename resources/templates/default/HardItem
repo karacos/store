@@ -63,7 +63,12 @@ if 'main_pic' in instance:
 				%if 'stock' not in instance:
             		<% instance['stock'] = 0 %>
             	% endif
+            	%if 'price' not in instance:
+            		<% instance['price'] = 0 %>
+            	% endif
 			<div id="admin_properties">
+				<div>Notice : Si le prix net est renseigne le prix public sera remplace par le prix net auquel sera applique les taxes</div> 
+				<div>Prix NET : <span class="store_price" property="price">${instance['price']}</span></div>
 				<div>Prix d'achat : <span class="store_price" property="buy_cost">${instance['buy_cost']}</span></div>
 				<div>Prix de vente mini : <span class="store_price" property="min_sell_price">${instance['min_sell_price']}</span></div>
 				<div>stock : <span class="store_stock" property="stock">${instance['stock']}</span></div>

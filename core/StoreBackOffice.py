@@ -40,12 +40,12 @@ class StoreBackOffice(karacos.db['WebNode']):
         weight = int(weight)
         price = int(price)
         if 'shipping_rates' not in self:
-            self['shipping_rates'] = {country: {weight:price}}
+            self['shipping_rates'] = {country.lower(): {weight:price}}
         else:
-            if country not in self['shipping_rates']:
-                self['shipping_rates'][country] = {weight:price}
+            if country.lower() not in self['shipping_rates']:
+                self['shipping_rates'][country.lower()] = {weight:price}
             else:
-                self['shipping_rates'][country][weight] = price
+                self['shipping_rates'][country.lower()][weight] = price
             
         self.save()
         return {'success': True}
@@ -138,9 +138,13 @@ class StoreBackOffice(karacos.db['WebNode']):
             self['shipping_rates'] = {}
         self.save()
         result = []
+        nsr = {}
         for country in self['shipping_rates'].keys():
-            for weight in self['shipping_rates'][country].keys():
-                result.append({'country': country, 'weight': weight, 'price': self['shipping_rates'][country][weight]})
+            nsr[country.lower()] = self['shipping_rates'][country]
+            for weight in nsr[country.lower()].keys():
+                result.append({'country': country.lower(), 'weight': weight, 'price': nsr[country.lower()][weight]})
+        self['shipping_rates'] = nsr
+        self.save()
         return result
     
     @karacos._db.isaction
@@ -191,7 +195,8 @@ class StoreBackOffice(karacos.db['WebNode']):
     
     def _calculate_shipping(self,cart):
         assert "shipping_rates" in self, "No shipping rates set for this store"
-        assert cart._get_shipping_adr()['country'] in self['shipping_rates']
+        
+        assert cart._get_shipping_adr()['country'].lower() in self['shipping_rates']
         return { 'shipping': cart._get_cart_array()['shipping'], 'adress' : cart._get_shipping_adr()}
         
     def _get_shipping_rate(self,country,weight):

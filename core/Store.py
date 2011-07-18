@@ -234,11 +234,18 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def calculate_shipping(self):
-        cart = self.__store__.get_open_cart_for_user()
-        
-        return {'status': 'success',
-                'success': True,
-                'data':  self._get_backoffice_node()._calculate_shipping(cart) } 
+        try:
+            cart = self.__store__.get_open_cart_for_user()
+            return {'status': 'success',
+                    'success': True,
+                    'data':  self._get_backoffice_node()._calculate_shipping(cart) }
+        except:
+            type, val, tb = sys.exc_info()
+            return {'status': 'error',
+                    'success': False,
+                    'error': "Impossible to ship at this adress",
+                    'message': "Impossible de livrer a cette adresse",
+                    'errorData': traceback.format_exc().splitlines()}
         
     @karacos._db.isaction
     def view_shopping_cart(self):
@@ -426,6 +433,8 @@ class Store(karacos.db['StoreParent']):
         adr_type = '%s_adr' % adr_type
         label = kw['label']
         del kw['label']
+        if 'adrs' not in user:
+            user['adrs'] = {}
         useadr = False
         if 'use_adr' in kw:
             del kw['use_adr']
@@ -448,7 +457,7 @@ class Store(karacos.db['StoreParent']):
     def add_cart_shipping(self,*args,**kw):
         user = self.__domain__._get_person_data()
         self.add_cart_adr(user,'shipping',kw)
-        return {'success': True}
+        return {'status': 'success','success': True}
                 
     add_cart_shipping.get_form = _add_shipping_adr_form
     add_cart_shipping.label = _("Adresse de livraison")
@@ -468,31 +477,32 @@ class Store(karacos.db['StoreParent']):
         """
         
         """
-        self.log.info("START validate_cart")
-        #assert cart_id in kw, "Parameter not found, cart_id"
-        cart = None
-        session = karacos.serving.get_session()
-        if 'cart_id' in session:
-            cart = self.db[session['cart_id']]
-        else:
-            cart = self.get_open_cart_for_user()
-            session['cart_id'] = cart.id
-        if not self.__domain__.is_user_authenticated():
-            return {'success': False, 'error':'User should be authenticated'}
-#            raise karacos.http.WebAuthRequired(self.__domain__,
-#                                               backlink="/%s/validate_cart"%self.get_relative_uri())
-        user = self.__domain__.get_user_auth()
-        if user.id != cart['customer_id']:
-            assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")
-            if self._is_open_cart_for_customer(user.id):
-                self.cancel_shopping_cart()
-            cart['customer_id'] = user.id
-            cart.save()
         try:
+            self.log.info("START validate_cart")
+            #assert cart_id in kw, "Parameter not found, cart_id"
+            cart = None
+            session = karacos.serving.get_session()
+            if 'cart_id' in session:
+                cart = self.db[session['cart_id']]
+            else:
+                cart = self.get_open_cart_for_user()
+                session['cart_id'] = cart.id
+            if not self.__domain__.is_user_authenticated():
+                return {'success': False, 'error':'User should be authenticated'}
+    #            raise karacos.http.WebAuthRequired(self.__domain__,
+    #                                               backlink="/%s/validate_cart"%self.get_relative_uri())
+            user = self.__domain__.get_user_auth()
+            if user.id != cart['customer_id']:
+                assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")
+                if self._is_open_cart_for_customer(user.id):
+                    self.cancel_shopping_cart()
+                cart['customer_id'] = user.id
+                cart.save()
+        
             cart._do_self_validation()
             self._get_backoffice_node()._validate_cart(cart)
         except:
-            return {'success': False, 'error':'Cart not validated'}
+            return {'success': False, 'error':'Cart not validated', 'errorData': sys.exc_info()}
         return {'status':'success','data':cart,'datatype':'ShoppingCart', 'success':True}
                 
     def _set_services_form(self):

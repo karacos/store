@@ -196,19 +196,27 @@ KaraCos.Store = {
 								});
 								
 							}});
-						adraccord.delegate("button", 'click', function(event) {
-							/**
-							 * 
-							 */
-							var 
-								form = KaraCos.$(this).closest('form');
-							
-							event.stopImmediatePropagation();
-							event.preventDefault();
-							cart.process_adr_form(form,store);
-							return false;
-						}); // delegate
 					}
+					adraccord.delegate("button", 'click', function(event) {
+						/**
+						 * 
+						 */
+						var 
+						form = KaraCos.$(this).closest('form');
+						
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						cart.process_adr_form(form,store);
+						return false;
+					}); // delegate
+					
+					$("#add_adr_form form").submit(function(event) {
+						var form = $(this.target);
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						cart.process_adr_form(form,store);
+						return false;
+					});
 					
 					adraccord.accordion({
 						autoHeight: false,
@@ -280,8 +288,13 @@ KaraCos.Store = {
 				async: false,
 				params: params,
 				callback: function(data) {
-					cart.calculate_shipping();
-					store.adrwin.dialog("close");
+					cart.calculate_shipping(function(error) {
+						if (error === null) {
+							store.adrwin.dialog("close");
+						} else {
+							alert(error);
+						}
+					});
 					
 				},
 				error: function(data) {
@@ -292,7 +305,7 @@ KaraCos.Store = {
 		/**
 		 * 
 		 */
-		calculate_shipping: function() {
+		calculate_shipping: function(callback) {
 			var cart = this;
 			KaraCos.action({url: store.store_url,
 				method: 'calculate_shipping',
@@ -313,11 +326,18 @@ KaraCos.Store = {
 							}
 						});
 						cart.check_state();
+						if (typeof callback === "function") {
+							callback(null);
+						}
+					} else {
+						callback(data.message);
 					}
 				},
 				error: function(data) {
-					console.log(data);
 					cart.check_state();
+					if (typeof callback === "function") {
+						callback(data.message);
+					}
 					//alert("Can't calculate shipping !!!");
 				}});
 		},
@@ -417,7 +437,13 @@ KaraCos.Store = {
 			cart.data.data.cart_net_total = net_total;
 			cart.data.data.cart_tax_total = tax_total;
 			cart.process_render();
-			cart.calculate_shipping();
+			cart.calculate_shipping(function(error) {
+				if (error === null) {
+					store.adrwin.dialog("close");
+				} else {
+					alert(error);
+				}
+			});
 		},
 		/**
 		 * Check cart state

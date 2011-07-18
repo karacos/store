@@ -5,7 +5,7 @@ Created on 13 janv. 2010
 '''
 from uuid import uuid4
 import simplejson as json
-import karacos
+import karacos, sys
 
 class ShoppingCart(karacos.db['Node']):
     '''
@@ -44,20 +44,24 @@ class ShoppingCart(karacos.db['Node']):
             self['cart_array'] = []
         if 'weight' not in kw['item']:
             item['weight'] = 0
-        if 'price' not in kw['item'] and 'public_price' in kw['item']:
-            kw['item']['price'] = float(kw['item']['public_price'])
-            kw['item'].save()
+        price = 0
+        if 'price' not in kw['item'] and 'public_price' in kw['item'] :
+            price = float(kw['item']['public_price'])
+        elif 'price' in kw['item'] and kw['item']['price'] == 0 and 'public_price' in kw['item']:
+            price = float(kw['item']['public_price'])
+        elif 'price' in kw['item'] and not kw['item']['price'] == 0:
+            price = float(kw['item']['price']) + float(kw['item']['tax']) * float(kw['item']['price'])
         self['cart_array'].append({'id': kw['item']['_id'],
                                         'name':kw['item']['name'],
                                         'title': kw['item']['title'],
                                         'tax':float(kw['item']['tax']),
-                                        'price':float(kw['item']['price']),
-                                        'net_price': float(kw['item']['price']) + float(kw['item']['tax']) * float(kw['item']['price']),
+                                        'price':price,
+                                        'net_price': price,
                                         'weight': int(kw['item']['weight']) * int(self['items'][kw['item'].id]),
                                         'number':number,
-                                        'total': float(kw['item']['price']) * number,
-                                        'tax_total': float(kw['item']['tax']) * float(kw['item']['price']) * number,
-                                        'net_total': (float(kw['item']['price']) + float(kw['item']['tax']) * float(kw['item']['price'])) * number})
+                                        'total': price * number,
+                                        'tax_total': 'N/A',
+                                        'net_total': price * number})
         self.save()
         return True
     
@@ -131,14 +135,18 @@ class ShoppingCart(karacos.db['Node']):
                 result['cart_tax_total'] = result['cart_tax_total'] + float(item['tax_total'])
                 result['cart_net_total'] = result['cart_net_total'] + float(item['net_total'])
             except:
-                pass
+                self.log.log_exc( sys.exc_info(),'warn')
         if 'billing_adr' in self:
             result['billing_adr'] = self['billing_adr']
             result['billing_adress'] = self._get_billing_adr()
         if 'shipping_adr' in self:
-            result['shipping_adr'] = self['shipping_adr']
-            result['shipping_adress'] = self._get_shipping_adr()
-            result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'],result['cart_total_weight'])
+            try:
+                result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'],result['cart_total_weight'])
+                result['shipping_adr'] = self['shipping_adr']
+                result['shipping_adress'] = self._get_shipping_adr()
+            except:
+                self.log.log_exc( sys.exc_info(),'warn')
+                result['shipping'] = "Impossible de livrer a l'adresse renseignee"
         else:
             result['shipping'] = "Pas d'adresse de livraison..."
         
