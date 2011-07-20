@@ -16,7 +16,7 @@
 			<div><span property="region">{region}</span>
 				<span property="country">{country}</span></div>
 		{.or}
-			<div>
+			<div class="missing_adress">
 			Pas d'adresse renseignée.
 			<span class="set_shipping_button">Cliquez ici pour renseigner une adresse de livraison</span>
 			</div>
@@ -39,7 +39,7 @@
 			<div><span property="region">{region}</span>
 				<span property="country">{country}</span></div>
 		{.or}
-			<div>
+			<div class="missing_adress">
 			Pas d'adresse renseignée.
 			<span class="set_billing_button">Cliquez ici pour renseigner une adresse de facturation</span>
 			<span class="use_billing_as_shipping_button">Ou ici pour utiliser la meme adresse que cette de facturation</span>
@@ -61,7 +61,7 @@
         {.repeated section @}
             <tr>
                 <td>{title}</td>
-                <td>{price|fprice}</td>
+                <td>{price}</td>
                 <td>
                 <div typeof="karacos:method" about="urn:uuid:{id}:set_number_item">
                 <div style="display: none" property="item_id">{id}</div>
@@ -73,21 +73,22 @@
                     <div><div class="dec_number"/></div>
                 </div>
                </td>
-                <td>{net_price|fprice}</td>
-                <td>{net_total|fprice}</td>
+                <td>{net_price}</td>
+                <td>{net_total}</td>
             </tr>
             {.end}
             <tr><td colspan="4" style="text-align:right">Frais de port</td>
                 <td>{.section shipping_adr}{shipping}{.or}<div class="set_shipping_button">{shipping}</div>{.end}</td>
             </tr>
-            <tr><td colspan="4" style="text-align:right">Total HT</td><td>{cart_total|fprice}</td></tr>
-            <tr><td colspan="4" style="text-align:right">Total TVA</td><td>{cart_tax_total|fprice}</td></tr>
-            <tr><td colspan="4" style="text-align:right">Total TTC</td><td>{cart_net_total|fprice}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total HT</td><td class="store_cart_total_ht">{cart_net_total}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total TVA</td><td>{cart_tax_total}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total TTC</td><td class="store_cart_total_ttc">{cart_total}</td></tr>
          </tbody>
         </table>
         <div class="pay_button" typeof="karacos:method"
-        about="urn:uuid:k-meche-store-paypal-button:pay_cart" url="{store_url}"
-         style="display:none;"><div style="display:none;" property="service">paypal_express</div>
+        about="urn:uuid:k-meche-store-paypal-button:pay_cart" style="display:none;">
+         <div style="display:none;" property="url">{store_url}</div>
+         <div style="display:none;" property="service">paypal_express</div>
          <img src="/_server/k-meche/images/EC-button.gif"/></div>
     {.or}
       <p><em>(No items found)</em></p>

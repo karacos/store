@@ -22,8 +22,8 @@ class Service(karacos.apps['store'].providers.paypal.Service):
         assert isinstance(payment, karacos.db['Payment'])
         payment['service'] = {'name':self['_name']}
         bill = cart._get_bill_data()
-        kw = {'amt': "%.2f" % bill['net_total'],
-              'ITEMAMT':"%.2f" % bill['net_total'],
+        kw = {'amt':  bill['net_total'],
+              'ITEMAMT': bill['net_total'],
               'returnurl':"http://%s%s/pay_callback/%s/return" % (cart.__store__.__domain__['fqdn'],
                                                                    cart.__store__._get_action_url(),
                                                                    payment.id),
@@ -38,7 +38,7 @@ class Service(karacos.apps['store'].providers.paypal.Service):
         for  item  in bill['items'].values():
             ""
             kw['L_NAME%s' %i ] = item['name']
-            kw['L_AMT%s' %i ] = "%.2f" % item['net_total']
+            kw['L_AMT%s' %i ] =  item['net_total']
             #kw['L_QTY%s' %i ] = "%.2f" % item['number']
             #kw['L_TAXAMT%s' %i ] = "%.2f" % (item['tax'] * item['price'] + item['price'])
             

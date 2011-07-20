@@ -132,25 +132,27 @@ KaraCos.Store = {
 		 */
 		add_adr: function(adrtype) {
 			var store = KaraCos.Store,
-				cart = this;
+				cart = this,
+				winid;
 			cart.current_op = "add_cart_" + adrtype;
 			cart.adrtype = adrtype;
+			winid = cart.adrtype + "_adress_form";
+			store.adrwin = KaraCos("#" + winid);
+			if (store.adrwin.length === 0) {
+				KaraCos('body').append('<div id="'+ winid +'"/>');
+				store.adrwin = KaraCos("#" + winid);
+			} // store.adrwin.length
+			store.adrwin.empty().text("loading...");
+			store.adrwin.dialog({width: '600px', modal:true});
+			store.adrwin.dialog('show');
 			KaraCos.getForm({
 				url:"/store",
 				form:cart.current_op,
-				callback: function(data,form) {
+				callback: function showAdrForm(data,form) {
 					var template = jsontemplate.Template(form, KaraCos.jst_options),
 						labelfield, newadrform, adraccord, adrtemplate, winid;
-					winid = cart.adrtype + "_adress_form";
-					store.adrwin = KaraCos("#" + winid);
-					if (store.adrwin.length === 0) {
-						KaraCos('body').append('<div id="'+ winid +'"/>');
-						store.adrwin = KaraCos("#" + winid);
-					} // store.adrwin.length
 					
 					store.adrwin.empty().append(template.expand(data));
-					store.adrwin.dialog({width: '600px', modal:true});
-					store.adrwin.dialog('show');
 					newadrform = store.adrwin.find("#add_adr_form");
 					adraccord = store.adrwin.find("#karacos_adress_accordion");
 					store.get_user_adr();
@@ -311,9 +313,13 @@ KaraCos.Store = {
 				method: 'calculate_shipping',
 				async:true,
 				callback: function(data) {
+					var total_ht, total_ttc;
 					if (data.success) {
 						store.cart.shipping_adr = data.data.adress;
-						store.cart.find('.set_shipping_button').empty().text(data.data.shipping);
+						cart.data.data.cart_total = Number(Number(cart.data.data.cart_total) + Number(data.data.shipping)).toFixed(2).toString();
+						cart.data.data.cart_net_total = Number(Number(cart.data.data.cart_net_total) + Number(data.data.shipping)).toFixed(2).toString();
+						cart.data.data.shipping = data.data.shipping;
+						cart.process_render();						
 						KaraCos.$.ajax({ url: "/fragment/adr_show_cart.jst",
 							context: document.body,
 							type: "GET",

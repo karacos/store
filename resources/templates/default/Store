@@ -112,10 +112,15 @@ KaraCos.Store.ready(function(store) {
  	${storeitemsstring}
  %endif
  </div>
- <div class="inside">
-<fb:like href="http://${instance.__domain__['fqdn']}${instance._get_action_url()}" send="true" width="450" show_faces="true" font="lucida grande"></fb:like>
+ <div id="social_plugins" class="inside" style="float:left;">
+	<fb:like href="http://${instance.__domain__['fqdn']}${instance._get_action_url()}" 
+		send="true" width="450" show_faces="true" font="lucida grande"></fb:like>
+	<g:plusone href="${instance.__domain__['fqdn']}${instance._get_action_url()}"></g:plusone>
+</div>
+
 </div>
 <script language="javascript">
+gapi.plusone.go("social_plugins");
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 KaraCos(function() {
 % else:
