@@ -75,6 +75,34 @@ KaraCos.Store.ready(function(store) {
 				}); // post
 			});
 		},
+		settings_ui: function(elem) {
+			var backoffice = this, method, params;
+//			console.log(forms);
+			this.settings_ui_elem = elem;
+			elem.find(".apply_form").click(function(event){
+				
+				var form = $(this).closest('form'),
+				method,
+				params = {};
+				$.each(form.serializeArray(), function(i, field) {
+					if (field.name === "method") {
+						method = field.value;
+					} else {
+						params[field.name] = field.value;
+					}
+				}); // each
+				KaraCos.action({ url: form.attr('action'),
+					method: method,
+					async: false,
+					params: params,
+					callback: function(data) {
+						KaraCos.alert(data.message);
+					}
+				});
+				return false;
+			});
+			
+		},
 		payment_ui: function(elem,forms) {
 			var backoffice = this;
 //			console.log(forms);
@@ -96,6 +124,20 @@ KaraCos.Store.ready(function(store) {
 		},
 		carts_management_ui: function(elem) {
 			var backoffice = this;
+			function refreshCartsUI() {
+				backoffice.elem.find('#store_backoffice_actions').tabs('load', 3);
+/*				KaraCos.$.ajax({ url: "" +
+						"/fragment/backoffice_carts?office_id=" + KaraCos.settings.page_id
+						+ "&base_id=" + KaraCos.settings.page_base_id,
+					async: false,
+					context: document.body,	
+					type: "GET",
+					success: function(data) {
+						$("#kc_shopping_carts_admin")
+							.parent().empty()
+							.append(data);
+					}}); */
+			}
 			backoffice.carts_management_elem = elem;
 			elem.accordion({
 				autoHeight: false,
@@ -111,7 +153,7 @@ KaraCos.Store.ready(function(store) {
 							KaraCos.alert(result.error.message,[{'label': 'Ok'}]);
 						} else {
 							KaraCos.alert(result.message,[{'label': 'Ok'}]);
-							backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+							refreshCartsUI();
 						}
 					});
 				});
@@ -155,7 +197,7 @@ KaraCos.Store.ready(function(store) {
 										callback: function(data) {
 											if (data.success) {
 												backoffice.cart_window.empty().text("Le numero de suivi est renseigne");
-												backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+												refreshCartsUI();
 												}
 											}
 										});
@@ -163,6 +205,38 @@ KaraCos.Store.ready(function(store) {
 								});
 						});
 				});
+			elem.find(".view_payment").each(function viewPayment(i, paybtn){
+				var $paybtn = $(paybtn),
+					cart_id = $paybtn.closest("tr").find('[property*=cart_id]').text();
+				$paybtn.button().click(function(){
+					KaraCos.action({
+						url: store.store_url+"/_backoffice",
+						method: 'get_payment',
+						async: false,
+						params: {'cart_id': cart_id},
+						callback: function(data) {
+							KaraCos.$.ajax({ url: "/fragment/payment_details.jst",
+								async: false,
+								context: document.body,
+								type: "GET",
+								success: function(tmplsrc) {
+									var template = jsontemplate.Template(tmplsrc, KaraCos.jst_options);
+									if (typeof backoffice.payment_window === "undefined") {
+										backoffice.payment_window = KaraCos('#kc_backoffice_payment');
+										if (backoffice.payment_window.length === 0) {
+											backoffice.payment_window = KaraCos('<div id="kc_backoffice_payment"/>');
+											KaraCos('body').append(backoffice.payment_window);
+										}
+									}
+									backoffice.payment_window.empty().append(template.expand(data));
+									backoffice.payment_window.dialog({width: '500px', modal:true});
+									backoffice.payment_window.dialog('show');
+								}
+							});
+						}
+					});
+				});
+			});
 			elem.find(".show_cart").each(
 				function(i, showbtn){
 					var $showbtn = KaraCos.$(showbtn),
@@ -202,7 +276,7 @@ KaraCos.Store.ready(function(store) {
 														callback: function(data) {
 															if (data.success) {
 																backoffice.cart_window.empty().text("Cette commande est consideree !");
-																backoffice.elem.find('#store_backoffice_actions').tabs('load', 2);
+																refreshCartsUI();
 																}
 															}
 														});

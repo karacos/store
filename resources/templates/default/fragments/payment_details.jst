@@ -1,0 +1,41 @@
+<h3>payment</h3>
+
+{.section result}
+	{.repeated section @}
+		<div>
+		<h4>{_id}</h4>
+		{.section service} 
+			<div>Nom du service : <span property="name">{name}</span></div>
+			{.section SetExpressCheckout}
+				<div style="border: 1px solid black; margin: 2px">
+				<div>SetExpressCkeckout</div>
+				{.section request}
+				<div style="border: 1px solid black; margin: 2px">
+					<div>request :</div>
+						{.section AMT}<div>amt : {AMT}</div>{.end}
+					{.end}
+				</div>
+				{.section response}
+					<div style="border: 1px solid black; margin: 2px">
+						<div>response:</div>
+						<div>ACK : {ACK}</div>
+						{.section L_SHORTMESSAGE0}<div>SHORTMESSAGE: {L_SHORTMESSAGE0}</div>{.end}
+						{.section L_LONGMESSAGE0}<div>LONGMESSAGE: {L_LONGMESSAGE0}</div>{.end}
+						<div>CORRELATIONID: {CORRELATIONID}</div>
+					</div>
+				{.end}
+				</div>
+			{.end}
+			{.section GetExpressCheckoutDetails}
+				<div style="border: 1px solid black; margin: 2px">
+				GetExpressCheckoutDetails response:
+				{.section response}
+					<div>ACK : {ACK}</div>
+				{.end}
+				</div>
+			{.end}
+		{.end}
+	</div>
+	
+	{.end}
+{.end}

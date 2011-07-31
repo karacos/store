@@ -1,0 +1,34 @@
+<% import karacos %>
+<% import sys, traceback %>
+% try:
+<% request = karacos.serving.get_request() %>
+<% session = karacos.serving.get_session() %>
+% if 'office_id' in request.str_params and 'base_id' in request.str_params:
+	<% office = karacos.base.db[request.str_params['base_id']].db[request.str_params['office_id']] %>
+	<% shipping_rates = office._get_shipping_rates() %>
+	<div id="backoffice_general_settings">
+		<h3><a href="#">Sales contact email</a></h3>
+		<div id="set_backoffice_contact">
+			<form method="POST" action="${office._get_action_url()}">
+				<input type="hidden" name="method" value="set_backoffice_contact"/>
+				<input type="text" name="backoffice_contact"
+					value="${office.get_backoffice_contact()}"
+				/>
+				<button class="apply_form">Appliquer</button>
+			</form>
+		</div>
+	</div>
+	<script language="javascript">
+		KaraCos.Store.BackOffice.settings_ui(KaraCos('#backoffice_general_settings'));
+	</script>
+%endif
+% except:
+	some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry 

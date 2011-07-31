@@ -56,6 +56,11 @@ class Store(karacos.db['StoreParent']):
         return self.__customers_group__ 
 
     @karacos._db.isaction
+    def add_cart_customer_email(self, email):
+        cart = self.get_open_cart_for_user()
+        return cart.set_customer_email(email)
+
+    @karacos._db.isaction
     def create_bo_node(self, type='StoreBackOffice'):
         assert issubclass(karacos.db[type], karacos.db['StoreBackOffice']), _("Type is not StoreBackOffice subclass")
         data = {'name':'_backoffice'}

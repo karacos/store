@@ -93,7 +93,6 @@ except:
 </div>
 
 <script language="javascript">
-gapi.plusone.go("social_plugins");
 KaraCos.Store.ready(function(store) {
 		KaraCos('#aside_menu li').click(
 			function(event){
@@ -188,7 +187,7 @@ KaraCos(function() {
 			console.log(e);
 		}
 	});
-	KaraCos.parse_FBML();
+	KaraCos.parse_social();
 	KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 });

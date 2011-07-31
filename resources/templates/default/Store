@@ -120,7 +120,6 @@ KaraCos.Store.ready(function(store) {
 
 </div>
 <script language="javascript">
-gapi.plusone.go("social_plugins");
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 KaraCos(function() {
 % else:
@@ -140,7 +139,7 @@ KaraCos(function() {
 	KaraCos.authManager.authenticationHeader();
 %endif
 	KaraCos.Store.ready(function(store) {
-		KaraCos.parse_FBML();
+		KaraCos.parse_social();
 		try {
 			KaraCos('#aside_menu li').click(
 				function(event){

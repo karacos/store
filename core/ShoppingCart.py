@@ -137,7 +137,7 @@ class ShoppingCart(karacos.db['Node']):
             try:
                 result['shipping'] = self.__store__._get_backoffice_node()._get_shipping_rate(self._get_shipping_adr()['country'].lower(),int(result['cart_total_weight']))
                 result['cart_total'] = "%.2f" % (float(result['cart_total']) + float(result['shipping']))
-                result['cart_net_total'] = "%.2f" % (float(result['cart_net_total']) + float(result['shipping']))
+                # result['cart_net_total'] = "%.2f" % (float(result['cart_net_total']) + float(result['shipping']))
                 result['shipping_adr'] = self['shipping_adr']
                 result['shipping_adress'] = self._get_shipping_adr()
             except:
@@ -158,7 +158,9 @@ class ShoppingCart(karacos.db['Node']):
             item = cart_array['items'][itemscount]
             result['items'][item['id']] = {'name':item['name'],
                                          'title': item['title'],
+                                         'net_price': item['net_price'],
                                             'tax':item['tax'],
+                                            'tax_amt': "%.2f" % (float(item['tax']) * float(item['net_price'])),
                                             'price': item['price'],
                                             'number':item['number'],
                                             'total': item['total'],
@@ -168,10 +170,10 @@ class ShoppingCart(karacos.db['Node']):
         result['net_total'] =  cart_array['cart_net_total']
         result['tax_total'] = cart_array['cart_tax_total']
         result['total'] = cart_array['cart_total']
-        if 'billing_adr' in self:
-            result['billing_adr'] = self['billing_adr']
-        if 'shipping_adr' in self:
-            result['shipping_adr'] = self['shipping_adr']
+        if 'shipping_adress' in self:
+            result['shipping_adress'] = self['shipping_adress']
+        if 'shipping_adress' in self:
+            result['shipping_adress'] = self['shipping_adress']
         return result
     
     def _get_billing_adr(self):
@@ -215,13 +217,23 @@ class ShoppingCart(karacos.db['Node']):
     
     def _add_shipping_adress_(self,adress):
         ""
+    
+    @karacos._db.ViewsProcessor.isview('self','javascript')
     def __get_active_payment__(self):
         """
         function(doc){
-         if(doc.parent_id == "%s" && doc.status == "active")
+         if(doc.parent_id == "%s" && (doc.status == "active" || doc.status == "validated"))
              emit(doc._id,doc)
         }
         """
+    
+    def get_customer_email(self):
+        """ TODO: implement method """
+        pass
+    def set_customer_email(self,email):
+        self['contact_mail'] = email
+        self.save()
+        return {"success": True, 'message': "Email registered for shopping_cart"}
         
     def _get_active_payment(self):
         """
@@ -232,7 +244,7 @@ class ShoppingCart(karacos.db['Node']):
         if payments.__len__() == 1:
             for payment in payments:
 #                    KaraCos._Db.log.debug("get_child_by_name : db.key = %s db.value = %s" % (child.key,domain.value) )
-                result = self.db[payments.key]
+                result = self.db[payment.key]
         else:
             return None
     

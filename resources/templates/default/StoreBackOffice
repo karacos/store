@@ -9,6 +9,7 @@ request = karacos.serving.get_request()
 % try:
 	<div id="store_backoffice_actions">
 		<ul>
+			<li><a href="/fragment/backoffice_general_settings?office_id=${instance.id}&base_id=${instance['parent_db']}">Backoffice settings</a></li>
 			<li><a href="/fragment/backoffice_payment_services?store_id=${instance.__store__.id}&base_id=${instance.__store__['parent_db']}">Store Payment Services</a></li>
 		% for action in actions['actions']:
 			% if action['action'] == 'get_shipping_rates':

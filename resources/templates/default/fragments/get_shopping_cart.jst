@@ -52,16 +52,15 @@
         <table border="1" margin="0" padding="0">
         <tr>
             <th style="width: 200px">Nom</th>
-            <th>Prix HT</th>
             <th>Quantite</th>
-            <th>Prix TTC</th>
+            <th>Prix U. HT</th>
+            <th>Prix U. TTC</th>
             <th style="width: 6em">Total TTC</th>
         </tr>
         <tbody>
         {.repeated section @}
             <tr>
                 <td>{title}</td>
-                <td>{price}</td>
                 <td>
                 <div typeof="karacos:method" about="urn:uuid:{id}:set_number_item">
                 <div style="display: none" property="item_id">{id}</div>
@@ -74,7 +73,8 @@
                 </div>
                </td>
                 <td>{net_price}</td>
-                <td>{net_total}</td>
+                <td>{price}</td>
+                <td>{total}</td>
             </tr>
             {.end}
             <tr><td colspan="4" style="text-align:right">Frais de port</td>

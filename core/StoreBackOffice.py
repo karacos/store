@@ -124,7 +124,33 @@ class StoreBackOffice(karacos.db['WebNode']):
                             'tracking_number':tracking_number}
         cart.save()
         return {'success': True, 'message': 'Cart is considered as shipped to customer'}
-        
+    
+    @karacos._db.ViewsProcessor.isview('self','javascript')
+    def __get_payments__(self, *args,**kw):
+        """ // %s
+        function(doc){
+         if(doc.type == "Payment")
+             emit(doc.parent_id,doc)
+        }
+        """
+    
+    def _get_payments(self, cart_id):
+        """
+        """
+        result = []
+        payments = self.__get_payments__(*(),**{'key':cart_id})
+        for payment in payments:
+#                    KaraCos._Db.log.debug("get_child_by_name : db.key = %s db.value = %s" % (child.key,domain.value) )
+            result.append(payment.value)
+        return result
+    
+    
+    @karacos._db.isaction
+    def get_payment(self, cart_id=None):
+        cart = self.db[cart_id]
+        assert isinstance(cart, karacos.db['ShoppingCart'])
+        return {"success": True, "result": self._get_payments(cart_id)}
+    
     @karacos._db.isaction
     def purge_carts(self,criteria=None):
         if criteria == "canceled":
@@ -272,6 +298,17 @@ class StoreBackOffice(karacos.db['WebNode']):
                                    'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()
         
+    def get_backoffice_contact(self):
+        if 'backoffice_contact' not in self:
+            return self.__domain__['site_email_from']
+        else:
+            return self['backoffice_contact']
+    
+    @karacos._db.isaction
+    def set_backoffice_contact(self, backoffice_contact=""):
+        self['backoffice_contact'] = backoffice_contact
+        self.save()
+        return {'success':True, 'message': 'Email enregistree'}
     
     def _set_payment_validated(self, cart, payment):
         """
@@ -287,6 +324,36 @@ class StoreBackOffice(karacos.db['WebNode']):
                                    'action':'payment_validated', 'creation_date':payment['creation_date'],
                                    'payment_id':payment.id,'payment_service': payment['service']})
         transaction.save()
+    
+    def send_payment_validation_mails(self, cart, payment):
+        payment_confirmation_back = ""
+        payment_confirmation_front = ""
+        try:
+            payment_confirmation_back = self.__domain__.lookup.get_template('%s/payment_confirmation_back' % self.__domain__.get_site_theme_base())
+        except:
+            payment_confirmation_back = self.__domain__.lookup.__domain__.get_template('/default/payment_confirmation_back')
+        try:
+            payment_confirmation_front = self.__domain__.lookup.get_template('%s/payment_confirmation_front' % self.__domain__.get_site_theme_base())
+        except:
+            payment_confirmation_front = self.__domain__.lookup.__domain__.get_template('/default/payment_confirmation_front')
+        # envoi des messages de confirmation (client et backoffice)
+        
+        message_front = MIMEMultipart()
+        message_front['From'] = self.get_backoffice_contact()
+        message_front['To'] = cart.get_customer_email()
+        message_front['Subject'] = _("Confirmation d'inscription")
+        front_body = payment_confirmation_front.render(cart=cart,payment=payment)
+        message_front.attach(MIMEText(front_body, 'html'))
+        karacos.core.mail.send_domain_mail(self.__domain__,cart.get_customer_email(),message_front.as_string())
+        
+        message_back = MIMEMultipart()
+        message_back['From'] = self.get_backoffice_contact()
+        message_back['To'] = self.get_backoffice_contact()
+        message_back['Subject'] = _("Confirmation d'inscription")
+        back_body = payment_confirmation_back.render(cart=cart,payment=payment)
+        message_back.attach(MIMEText(back_body, 'html'))
+        karacos.core.mail.send_domain_mail(self.get_backoffice_contact(),message_back.as_string())
+        
         
         
     

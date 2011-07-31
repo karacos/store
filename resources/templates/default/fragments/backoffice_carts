@@ -51,7 +51,7 @@ session = karacos.serving.get_session() %>
 			<table>
 				<% carts = office._get_shopping_carts() %>
 				% for cart in carts:
-					<tr><td>${cart['status']}</td><td>${cart['_id']}</td><td>${cart['last_modification_date']}</td><td>${len(cart['items'])}</td></tr>
+					<tr><td>${cart['status']}</td><td property="cart_id">${cart['_id']}</td><td>${cart['last_modification_date']}</td><td>${len(cart['items'])}</td><td><button class="view_payment">Voir paiement</button></td></tr>
 				% endfor
 			</table>
 		</div>

@@ -108,7 +108,6 @@ if 'main_pic' in instance:
 ## typeof (HardItem object)
 
 <script language="javascript">
-gapi.plusone.go("social_plugins");
 % if 'karacos-fragment' in request.headers or 'Karacos-Fragment' in request.headers:
 	KaraCos.change_page({
 		id : '${instance.id}',
@@ -208,7 +207,7 @@ KaraCos(function() {
 			
 		});
 KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
-KaraCos.parse_FBML();
+KaraCos.parse_social();
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 	});
 % endif

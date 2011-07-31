@@ -1,0 +1,59 @@
+<% bill_data = cart._get_bill_data() %>
+
+Une commande est valid&eacute;e :
+<br/>
+
+Adresse de livraison :
+<div>
+${bill_data['shipping_adress']['destname']} ${bill_data['shipping_adress']['dest1stname']}<br/>
+${bill_data['shipping_adress']['street_address']}<br/>
+${bill_data['shipping_adress']['street_address1']}<br/>
+${bill_data['shipping_adress']['postal_code']} ${bill_data['shipping_adress']['locality']}<br/>
+${bill_data['shipping_adress']['region']} ${bill_data['shipping_adress']['country']}
+</div>
+
+<br/>
+
+Details de la commande :
+<br/>
+<table>
+<tr>
+		<td>Reference</td>
+		<td>Designation</td>
+		<td>Prix HT</td>
+		<td>TVA</td>
+		<td>Prix TTC</td> 
+		<td>Quantite</td>
+		<td>Total HC</td>
+		<td>Total TVA</td>
+		<td>Total TTC</td>
+	</tr>
+% for item in bill_data['items']:
+	<tr>
+		<td>item['name']</td>
+		<td>item['title']</td>
+		<td>item['net_price']</td>
+		<td>item['tax']</td>
+		<td>item['price']</td> 
+		<td>item['number']</td>
+		<td>item['net_total']</td>
+		<td>item['tax_total']</td>
+		<td>item['total']</td>
+	</tr>
+% endfor
+<tr><td colspan="6">Total</td>
+<td>bill_data['net_total']</td>
+<td>bill_data['tax_total']</td>
+<td>bill_data['total']</td>
+</table>
+
+
+Adresse de facturation :
+<div>
+${bill_data['billing_adress']['destname']} ${bill_data['billing_adress']['dest1stname']}<br/>
+${bill_data['billing_adress']['street_address']}<br/>
+${bill_data['billing_adress']['street_address1']}<br/>
+${bill_data['billing_adress']['postal_code']} ${bill_data['billing_adress']['locality']}<br/>
+${bill_data['billing_adress']['region']} ${bill_data['billing_adress']['country']}
+</div>
+<br/>
