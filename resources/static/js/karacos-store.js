@@ -197,7 +197,10 @@ KaraCos.Store = {
 									
 								});
 								
-							}});
+							},
+						error: function(data) {
+							
+						}});
 					}
 					adraccord.delegate("button", 'click', function(event) {
 						/**
@@ -379,17 +382,73 @@ KaraCos.Store = {
 		 * Process rendering and event bindings
 		 */
 		process_render: function() {
+			/**
+			 * If user email is not set, ask user for it
+			 * @param callback
+			 */
+			function verify_email(callback) {
+				if (KaraCos.authManager.user_actions_forms.email === null) {
+					KaraCos.$.ajax({
+						url:"/fragment/set_user_email.jst",
+						context: document.body,
+						type: "GET",
+						async: true,
+						success: function(data){
+//							var emailtemplate = jsontemplate.Template(data, KaraCos.jst_options);
+							store.emailwin = KaraCos("#set_email_window");
+							if (store.emailwin.length === 0) {
+								KaraCos('body').append('<div id="set_email_window"/>');
+								store.emailwin = KaraCos("#set_email_window");
+							} // emailwin
+							store.emailwin.empty().append(data);
+							store.emailwin.dialog({width: '600px',modal:true}).show();
+							store.emailwin.find('.form_set_email_button')
+								.button().click(function(event){
+									var $this = $(this), params = {}, method = 'set_user_email';
+									$.each($this.closest('form').serializeArray(), function(i, field) {
+										if (field.name === "method") {
+											method = field.value;
+										} else {
+											params[field.name] = field.value;
+										}
+									}); // each
+									KaraCos.action({ url: '/',
+										method: method,
+										async: false,
+										params: params,
+										callback: function(data) {
+											if (data.success) {
+												KaraCos.authManager.user_actions_forms.email = params['email'];
+												store.emailwin.dialog('close');
+												callback();
+											}
+										},
+										error: function(data) {
+											
+										}
+									}); // POST login form
+								});
+						}
+					});
+				} else {
+					callback();
+				}
+			}
 			var cart = this;
 			cart.win.empty().append(cart.template.expand(cart.data));
 			
 			cart.find('.set_shipping_button').click(function(){
 				KaraCos.authManager.provideLoginUI(function(){
-					KaraCos.Store.cart.add_adr('shipping');
+					verify_email(function(){
+						KaraCos.Store.cart.add_adr('shipping');
+					});
 				});
 			}); // click
 			cart.find('.set_billing_button').click(function(){
 				KaraCos.authManager.provideLoginUI(function(){
-					KaraCos.Store.cart.add_adr('billing');
+					verify_email(function(){
+						KaraCos.Store.cart.add_adr('billing');
+					});
 				});
 			}); // click
 			cart.check_state();

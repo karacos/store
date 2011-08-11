@@ -230,6 +230,7 @@ class ShoppingCart(karacos.db['Node']):
     def get_customer_email(self):
         """ TODO: implement method """
         pass
+    
     def set_customer_email(self,email):
         self['contact_mail'] = email
         self.save()

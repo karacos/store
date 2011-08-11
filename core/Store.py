@@ -48,7 +48,7 @@ class Store(karacos.db['StoreParent']):
     def _get_customers_group(self):
         self._update_item()
         if '__customers_group__' not in dir(self):
-            name = 'customers@%s' % self['name']
+            name = 'customers@%s' % self.__domain__['name']
             if name not in self.__domain__._get_groups_node().__childrens__:
                 self.__customers_group__ = self.__domain__._create_group(name, False)
             else:
@@ -90,6 +90,8 @@ class Store(karacos.db['StoreParent']):
         karacos.db['StoreParent']._publish_node(self)
         if 'cancel_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
+        if 'cancel_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("cancel_shopping_cart")
         if 'validate_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("validate_cart")
         if 'view_shopping_cart' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
@@ -109,7 +111,8 @@ class Store(karacos.db['StoreParent']):
                                         'add_cart_shipping',
                                         'add_cart_billing',
                                         'pay_cart',
-                                        'pay_callback']
+                                        'pay_callback',
+                                        'get_user_adresses']
         
         if 'calculate_shipping' not in self['ACL'][custgrpname]:
             self['ACL'][custgrpname].append("calculate_shipping")
@@ -121,6 +124,8 @@ class Store(karacos.db['StoreParent']):
             self['ACL'][custgrpname].append("pay_cart")
         if 'pay_callback' not in self['ACL'][custgrpname]:
             self['ACL'][custgrpname].append("pay_callback")
+        if 'get_user_adresses' not in self['ACL'][custgrpname]:
+            self['ACL'][custgrpname].append("get_user_adresses")
         
         self['public'] = True
         
@@ -229,11 +234,10 @@ class Store(karacos.db['StoreParent']):
         """
         user = self.__domain__.get_user_auth()
         customer_id = ''
-        if self.__domain__.is_user_authenticated():
-            customer_id = user.id
-        else:
-            assert False, _("Unavailable to anonymous user")
-            
+        assert self.__domain__.is_user_authenticated() , _("Unavailable to anonymous user")
+        customer_id = user.id
+        if not user.belongs_to(self._get_customers_group()):
+            self._get_customers_group().add_user(user)
         result = self._get_open_carts_for_customer(customer_id)
         return result
     
@@ -265,6 +269,7 @@ class Store(karacos.db['StoreParent']):
     
     @karacos._db.isaction
     def get_shopping_cart(self):
+        
         result = {'success': True, 'status':'success',
                   'store_url': self._get_action_url(),
                   'data':self.get_open_cart_for_user()._get_cart_array()}
