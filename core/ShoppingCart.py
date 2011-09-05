@@ -39,7 +39,7 @@ class ShoppingCart(karacos.db['Node']):
         if 'cart_array' not in self:
             self['cart_array'] = []
         if 'weight' not in kw['item']:
-            item['weight'] = 0
+            kw['item']['weight'] = 0
         price = 0
         net_price = 0
         tax = 0
@@ -55,7 +55,7 @@ class ShoppingCart(karacos.db['Node']):
             price = net_price + net_price * tax
         self['cart_array'].append({'id': kw['item']['_id'],
                                         'name':kw['item']['name'],
-                                        'title': kw['item']['title'],
+                                        'title': kw['item'].__get_title__(),
                                         'tax':"%.2f" % tax,
                                         'price':"%.2f" % price,
                                         'net_price': "%.2f" % net_price,

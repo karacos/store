@@ -1,0 +1,123 @@
+/**
+	Boutons Quantite au panier
+*/
+
+.item_cart_control {
+	width: 12em;
+}
+.item_cart_control > div {
+	width: 12em;
+	float:left;
+	}
+.inc_number {
+    float: right;
+    width: 16px;
+    height: 16px;
+}
+.dec_number {
+    float: right;
+    width: 16px;
+    height: 16px;
+}
+.item_number {
+    margin: 0; padding:2px;
+    text-align: right;
+}
+
+.modify_in_cart_control {
+	width: 3em;
+	float: right;
+}
+.modify_in_cart_control > div {
+	width: 3em;
+	float: left;
+}
+/*
+	
+*/
+.ui-button-icon-only {
+    width: 16px;
+}
+
+#shopping_cart_grid > table {
+	width: 100%;
+}
+
+#Shopping_cart table tbody {
+    border: 1px;
+}
+
+
+#Shopping_cart table tbody tr {
+    border: 1px solid black;
+}
+#Shopping_cart table tbody tr td {
+    border: 1px solid black;
+}
+.karacos_field_holder {
+	float: left;
+	display: bloc;
+	width: 10em;
+	}
+.karacos_field_holder .label {
+	float: left;
+	
+	font-size: 0.8em;
+	margin:0; padding: 0;
+}
+.field_line {
+	display: bloc;
+	float: left;
+	width: 97%;
+	margin: 0; padding:0;
+	}
+.action_buttons {
+	float: right;
+	margin: 0; padding:2px;
+	}
+.karacos_field_holder input {
+	display: bloc;
+	margin:0; padding: 0;
+	border: 1px solid black;
+}
+
+#kc_existing_adresses div.adr_display_box {
+	border: 1px solid black;
+	float:left;
+	padding: 2px;
+	}
+#kc_existing_adresses div.adr_display_box div.adr_display_label {
+	background-color: #C0C0C0;
+	}
+div#Shopping_cart div.shipping_adr_panel {
+	border: 1px solid black;
+	float:left;
+	padding: 2px;
+	font-size: 0.75em;
+	width: 14em;
+	height: 8em;
+}
+div.missing_adress {
+	border: 2px solid red;
+}
+
+span.set_shipping_button {
+	font-weight: bold;
+	background-color: #C0C0C0;
+	color: white;
+}
+
+span.set_billing_button {
+	font-weight: bold;
+	background-color: #C0C0C0;
+	color: white;
+}
+
+div#Shopping_cart div.billing_adr_panel {
+	border: 1px solid black;
+	float: right;
+	padding: 2px;
+	font-size: 0.75em;
+	width: 14em;
+	height: 8em;
+}
