@@ -41,6 +41,7 @@
 
 #shopping_cart_grid > table {
 	width: 100%;
+	padding-top: 10px;
 }
 
 #Shopping_cart table tbody {
@@ -51,8 +52,20 @@
 #Shopping_cart table tbody tr {
     border: 1px solid black;
 }
+
+#Shopping_cart table tbody tr.items_title {
+    border: 1px solid black;
+    
+}
+
 #Shopping_cart table tbody tr td {
     border: 1px solid black;
+    vertical-align: middle;
+}
+#Shopping_cart table tbody tr td.price {
+    border: 1px solid black;
+    vertical-align: middle;
+    text-align: right;
 }
 .karacos_field_holder {
 	float: left;

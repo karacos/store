@@ -300,7 +300,10 @@ class StoreBackOffice(karacos.db['WebNode']):
         
     def get_backoffice_contact(self):
         if 'backoffice_contact' not in self:
-            return self.__domain__['site_email_from']
+            if 'site_email_from' in self.__domain__:
+                return self.__domain__['site_email_from']
+            else:
+                return ""
         else:
             return self['backoffice_contact']
     

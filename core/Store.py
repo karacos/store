@@ -509,11 +509,15 @@ class Store(karacos.db['StoreParent']):
                 cart['customer_id'] = user.id
                 cart.save()
         
-            cart._do_self_validation()
+            result,type = cart._do_self_validation()
             self._get_backoffice_node()._validate_cart(cart)
+            if result:
+                return {'status':'success','data':cart,'datatype':'ShoppingCart', 'success':True}
+            else:
+                return {'message':"cart not validated, %s is missing" % type, 'type': type, 'success':False}
+                
         except:
             return {'success': False, 'error':'Cart not validated', 'errorData': sys.exc_info()}
-        return {'status':'success','data':cart,'datatype':'ShoppingCart', 'success':True}
                 
     def _set_services_form(self):
         result = None

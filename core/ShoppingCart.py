@@ -90,6 +90,9 @@ class ShoppingCart(karacos.db['Node']):
             it_id =  self['cart_array'].index(found)
             self['items'][item.id] = number
             found['number'] =  number
+            if 'weight' not in item:
+                item['weight'] = 0
+                item.save()
             found['weight'] = "%d" % int(item['weight'] * self['items'][item.id])
             found['net_total'] = "%.2f" % (float(item['price']) * int(self['items'][item.id]))
             found['tax_total'] = "%.2f" % float(float(item['tax']) * float(item['price']) * self['items'][item.id])
@@ -206,14 +209,19 @@ class ShoppingCart(karacos.db['Node']):
         Check if enough data in cart (regarding each item requirement)
         """
         if 'billing_adr' not in self:
+            return (False,'billling')
             # Billing adress is required
-            raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
-                                            backlink = "/%s/validate_cart"%self.__store__.get_relative_uri(),
-                                            message = "Validate billing")
+            # raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
+            #                                backlink = "/%s/validate_cart"%self.__store__.get_relative_uri(),
+            #                                message = "Validate billing")
         for item_key in self['items'].keys() :
-            self.db[item_key]._do_cart_validation(self)
+            try:
+                self.db[item_key]._do_cart_validation(self)
+            except:
+                return (False, 'shipping')
         self['validated'] = True
         self.save()
+        return (True, 'none')
     
     def _add_shipping_adress_(self,adress):
         ""

@@ -50,7 +50,7 @@
 	</div> <!-- cart_adr_panel -->
     {.section items}
         <table border="1" margin="0" padding="0">
-        <tr>
+        <tr class="items_title">
             <th style="width: 200px">Nom</th>
             <th>Quantite</th>
             <th>Prix U. HT</th>
@@ -72,9 +72,9 @@
                     <div><div class="dec_number"/></div>
                 </div>
                </td>
-                <td>{net_price}</td>
-                <td>{price}</td>
-                <td>{total}</td>
+                <td class="price">{net_price}</td>
+                <td class="price">{price}</td>
+                <td class="price">{total}</td>
             </tr>
             {.end}
             <tr><td colspan="4" style="text-align:right">Frais de port</td>
