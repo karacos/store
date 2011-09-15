@@ -20,7 +20,7 @@
 	<% node_actions = instance._get_actions() %>
 	## 'group.staff@%s' % instance.__domain__['name'] in user_auth['groups'] %>
 	% try:
-		(function(submenu){
+		(function storeInstanceMenu(submenu){
 			var 
 			item;
 			actionwindow = KaraCos.actionMenu.actionWindow;
@@ -28,9 +28,9 @@
 		
 			})(submenu);
 		% if 'w_browse' in instance._get_backoffice_node()._get_actions():
-			(function(toolbar) {
+			(function ShowBackOfficeAdminButtonInToolBar(toolbar) {
 				
-				var button = KaraCos('<button">Administration boutique</button>')
+				var button = $('<button">Administration boutique</button>')
 					.button()
 					.click(function(event) {
 						var url = '${instance._get_backoffice_node()._get_action_url()}';

@@ -16,13 +16,13 @@
 
 % if instance != None:
 <% node_actions = instance._get_actions() %>
-(function(submenu){
+(function storeParentInstanceMenu(submenu){
 	var 
 		button,
 		actionwindow = KaraCos.actionMenu.actionWindow;
 	% if 'create_store_folder' in node_actions:
 		item = KaraCos('<li><a href="#">Créer un dossier</a></li>');
-		item.click(function(){
+		item.click(function clickCreateFolder(){
 					KaraCos.getForm({
 						url: '${instance._get_action_url()}',
 						form: "create_store_folder",

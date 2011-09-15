@@ -13,6 +13,7 @@ KaraCos.Store.ready(function(store) {
 			var backoffice = this;
 			jQuery.ajax({ url: store.store_url+"/_backoffice/get_user_actions_forms",
 				dataType: "json",
+				cache: false,
 				async: false,
 				contentType: 'application/json',
 				context: document.body,
@@ -54,6 +55,7 @@ KaraCos.Store.ready(function(store) {
 						KaraCos.$.ajax({ url: "/fragment/view_shipping_rates?office_id=" +
 									store.office.id + "&base_id=" + store.office.db,
 							async: false,
+							cache: false,
 							context: document.body,
 							type: "GET",
 							success: function(data) {
@@ -109,6 +111,7 @@ KaraCos.Store.ready(function(store) {
 			this.payment_ui_elem = elem;
 			KaraCos.$.ajax({ url: "/fragment/set_services.jst",
 				async: false,
+				cache: false,
 				context: document.body,
 				type: "GET",
 				success: function(data) {
@@ -217,6 +220,7 @@ KaraCos.Store.ready(function(store) {
 						callback: function(data) {
 							KaraCos.$.ajax({ url: "/fragment/payment_details.jst",
 								async: false,
+								cache: false,
 								context: document.body,
 								type: "GET",
 								success: function(tmplsrc) {
@@ -252,6 +256,7 @@ KaraCos.Store.ready(function(store) {
 								callback: function(data) {
 									KaraCos.$.ajax({ url: "/fragment/show_cart.jst",
 										async: false,
+										cache: false,
 										context: document.body,
 										type: "GET",
 										success: function(tmplsrc) {

@@ -179,6 +179,7 @@ KaraCos.Store = {
 									KaraCos.$.ajax({ url: "/fragment/modify_use_adr.jst",
 										context: document.body,
 										type: "GET",
+										cache: false,
 										async: true,
 										success: function(data) {
 											var modify_adr_template = jsontemplate.Template(data, KaraCos.jst_options),
@@ -270,6 +271,7 @@ KaraCos.Store = {
 					KaraCos.$.ajax({ url: "/fragment/adr_show_cart.jst",
 						context: document.body,
 						type: "GET",
+						cache: false,
 						async: true,
 						success: function(data) {
 							var adrtemplate = jsontemplate.Template(data, KaraCos.jst_options);
@@ -326,6 +328,7 @@ KaraCos.Store = {
 						KaraCos.$.ajax({ url: "/fragment/adr_show_cart.jst",
 							context: document.body,
 							type: "GET",
+							cache: false,
 							async: true,
 							success: function(data) {
 								var adrtemplate = jsontemplate.Template(data, KaraCos.jst_options);
@@ -369,11 +372,19 @@ KaraCos.Store = {
 			KaraCos.getForm({
 				url:KaraCos.Store.store_url,
 				form:'get_shopping_cart',
-				callback: function(data,form) {
-					cart.template = jsontemplate.Template(form, KaraCos.jst_options);
-					cart.data = data;
-					cart.process_render();
-					cart.check_state();
+				noparams: function(data) {
+					$.ajax({ url: "/fragment/get_shopping_cart.jst",
+						context: document.body,
+						type: "GET",
+						cache: false,
+						async: false,
+						success: function(form) {
+							cart.template = jsontemplate.Template(form, KaraCos.jst_options);
+							cart.data = data;
+							cart.process_render();
+							cart.check_state();
+						}
+					});
 				}
 			});
 			return this;
@@ -392,6 +403,7 @@ KaraCos.Store = {
 						url:"/fragment/set_user_email.jst",
 						context: document.body,
 						type: "GET",
+						cache: false,
 						async: true,
 						success: function(data){
 //							var emailtemplate = jsontemplate.Template(data, KaraCos.jst_options);
