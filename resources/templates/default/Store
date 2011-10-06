@@ -87,23 +87,25 @@ except:
 	</ul>
 </div>
 <script language="javascript">
-KaraCos.Store.ready(function(store) {
-	KaraCos.$("#store_page_nav_header li").button().click(
-		function(event){
-			event.stopImmediatePropagation();
-			event.preventDefault();
-			var $this = KaraCos.$(this), url;
-			url = $this.find('a').attr("href");
-			History.pushState(null, null, url);
-			KaraCos.$.ajax({
-				url: url,
-				headers: {'Karacos-Fragment': 'true'},
-				success: function(data) {
-					KaraCos('#MainContent').empty().append(data);
-				}
+require(['jquery'], function($) {
+	$('body').bind('kcstore', function(store) {
+		$("#store_page_nav_header li").button().click(
+			function(event){
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				var $this = $(this), url;
+				url = $this.find('a').attr("href");
+				History.pushState(null, null, url);
+				$.ajax({
+					url: url,
+					headers: {'Karacos-Fragment': 'true'},
+					success: function(data) {
+						$('#MainContent').empty().append(data);
+					}
+				});
 			});
-		});
-	KaraCos.$(KaraCos.$("#store_page_nav_header li").get(${page})).addClass('ui-state-over');
+		$($("#store_page_nav_header li").get(${page})).addClass('ui-state-over');
+	});
 });
 </script>
 % endif
@@ -120,9 +122,9 @@ KaraCos.Store.ready(function(store) {
 
 </div>
 <script language="javascript">
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
-KaraCos(function() {
-% else:
+require(['jquery'], function($) {
+	$('body').bind('kcready', function() {
+% if 'karacos-fragment' in request.headers or 'Karacos-Fragment' not in request.headers:
 	KaraCos.change_page({
 		id : '${instance.id}',
 		base_id : '${instance['parent_db']}',
@@ -136,48 +138,15 @@ KaraCos(function() {
 			,keywords: "${instance['keywords']}"
 		% endif
 	});
+% endif
+	
 	KaraCos.authManager.authenticationHeader();
-%endif
-	KaraCos.Store.ready(function(store) {
-		KaraCos.parse_social();
-		try {
-			KaraCos('#aside_menu li').click(
-				function(event){
-					var url = KaraCos.$(this).find('a').attr("href");
-					event.stopImmediatePropagation();
-					event.preventDefault();
-					History.pushState(null, null, url);
-					KaraCos.$.ajax({
-						url: url,
-						headers: {'karacos-fragment': 'true'},
-						success: function(data) {
-							KaraCos('#MainContent').empty().append(data);
-						}
-					});
-				});
-			KaraCos('#aside_menu').menu({});
-			if (typeof store.show_page === "undefined") {
-				/* var appendEl = document.head,
-				    scriptEl = document.createElement('script');
-				scriptEl.src = '/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}';
-				//scriptEl.setAttribute('defer','defer');
-				appendEl.appendChild(scriptEl);
-			*/
-				KaraCos.$.ajax({
-	    			dataType : 'script',
-					url: "/fragment/Store.js?store_id=${instance.id}&base_id=${instance['parent_db']}",
-					async: false
-				});
-			}
-			store.show_page(${count},${page});
-		} catch(e) {
-			console.log(e);
-		}
-	});
+	KaraCos.parse_social();
 	KaraCos.Store.init_store({url:'${instance._get_action_url()}'});
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+	$('body').bind('kcstore', function(store) {
+		store.show_page(${count},${page});
+	});
 });
-%endif
 </script>
 % except:
 	some errors :
