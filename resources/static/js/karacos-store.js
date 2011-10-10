@@ -1,6 +1,8 @@
-define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
+define('karacos.store',['jquery','karacos','karacos/core/jquery.promise'], function($){
 	$('body').createPromiseEvent('kcstore');
+	$('body').createPromiseEvent('kcstoreloaded');
 	$('body').bind('kccore', function(){
+		console.log('Starting store Initialization');
 		var store = {
 				is_ready: false,
 				ready_func: [],
@@ -38,14 +40,33 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 				/**
 				 * Store initialization method
 				 */
-				init_store: function(config) {
+				init: function(config) {
+					var store = this;
 					try {
 						if (this.is_ready && this.store_url === config.url) {
 							console.log('store already initialized at that url');
 						} else {
-							this.store_url = config.url;
-							this.is_ready = true;
-							console.log('initializing store');
+							store.store_url = config.url;
+							$.ajax({
+								url: store.store_url,
+								context: document.body,
+								type: "GET",
+								dataType: "json",
+								contentType: 'application/json',
+								cache: false,
+								async: true,
+								success: function(data) {
+									if (data.success === true) {
+										store.is_ready = true;
+										console.log('Initializing store at url ' + store.store_url);
+										store.id = data.data.id;
+										store.base_id = data.data.base_id;
+										$('body').trigger('kcstore', [store]);
+										
+									}
+								}
+								
+							})
 							/**
 							 * Formatter for numbers in jsontemplates
 							 */
@@ -53,7 +74,6 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 								number = Number(s);
 								return (number.toFixed(2)).toString();
 							};
-							$('body').trigger('kcstore', this);
 //							len = this.ready_func.length;
 //							for(var i = 0; i < len; i++) {
 //								try {
@@ -118,12 +138,80 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 					} catch (e) {
 						console.log(e);
 					}
-				}
+				},
+				show_page: function(count,page){
+					$($("#store_page_nav_header li").get(page)).addClass('ui-state-over');
+					var store = this;
+					console.log("Running show_page");
+					store.page = {};
+					try {
+						var template,
+						len;
+						jQuery.ajax({ url: "/fragment/get_items_list.jst",
+							context: document.body,
+							type: "GET",
+							async: false,
+							success: function(jstsrc) {
+								template = jsontemplate.Template(jstsrc, KaraCos.jst_options);
+								KaraCos.action({ url: store.store_url,
+									method: "get_store_items_list",
+									async: false,
+									params:{count:count,page:page},
+									callback: function(data) {
+										var main_content = KaraCos('#StoreContent');
+										console.log("items list fetched");
+										try {
+											main_content.empty();
+											main_content.append(template.expand(data));
+											main_content.find('.karacos_store_item').panel({
+												collapsible:false
+											});
+//							.sortable({
+//									placeholder: "ui-state-highlight"
+//								});
+											store.activate_item_cart_buttons();							
+										} catch(e) {
+											console.log("Exception in show_page");
+											console.log(e);
+										}
+									}
+								});
+							}});
+					} catch(e) {
+						console.log(e);
+					}
+					$("#store_page_nav_header li").button().click(
+							function(event){
+								event.stopImmediatePropagation();
+								event.preventDefault();
+								var $this = $(this), url;
+								url = $this.find('a').attr("href");
+								History.pushState(null, null, url);
+								$.ajax({
+									url: url,
+									headers: {'Karacos-Fragment': 'true'},
+									success: function(data) {
+										$('#MainContent').empty().append(data);
+									}
+								});
+							});
+						
+				} // function store.sow_page
 		};
 		
 		KaraCos.Store = store;
 		
 		shoppingCartProto = {
+				/**
+				 * Object Initialization
+				 */
+				init: function() {
+					this.win = KaraCos('#Shopping_cart');
+					if (this.win.length == 0) {
+						KaraCos('body').append('<div id="Shopping_cart"/>');
+						this.win = KaraCos('#Shopping_cart');
+					}
+				},
 				/**
 				 * fallback to jquery find
 				 */
@@ -181,7 +269,7 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 												adraccord.append('<h3>Utiliser une adresse</h3><div id="kc_existing_adress"/>');											
 											}
 											modify_adr_form = adraccord.find('#kc_existing_adress');
-											KaraCos.$.ajax({ url: "/fragment/modify_use_adr.jst",
+											$.ajax({ url: "/fragment/modify_use_adr.jst",
 												context: document.body,
 												type: "GET",
 												cache: false,
@@ -357,16 +445,6 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 							}
 							//alert("Can't calculate shipping !!!");
 						}});
-				},
-				/**
-				 * 
-				 */
-				init: function() {
-					this.win = KaraCos('#Shopping_cart');
-					if (this.win.length == 0) {
-						KaraCos('body').append('<div id="Shopping_cart"/>');
-						this.win = KaraCos('#Shopping_cart');
-					}
 				},
 				/**
 				 * Shows the shopping cart
@@ -563,6 +641,7 @@ define('karacos.store',['jquery','karacos/core/jquery.promise'], function($){
 			return this;
 		};
 		KaraCos.ShoppingCart.prototype = jQuery.extend(true,KaraCos.ShoppingCart.prototype,shoppingCartProto);
+		$('body').trigger('kcstoreloaded', [store]);
 		return store;
 	});
 });
