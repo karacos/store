@@ -1,0 +1,88 @@
+<%
+import karacos
+import traceback,sys
+%>
+% try:
+    <aside>
+	<nav>
+	<% storefolders = instance.__store__._get_store_folders_by_id_()['data'] %>
+		<ul id="aside_menu" role="listbox">
+			% for folder in storefolders:
+				<li role="menuitem"><a href="${instance.__store__._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
+			%endfor
+		</ul>
+	</nav>
+</aside>
+
+% if attributes['items']['page_total'] > 1:
+<div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center ; margin-left: 160px;">
+	<ul>
+	% if attributes['page'] > 1:
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${attributes['count']}&page=${ attributes['page'] -1 }">&lt; Pr&eacute;c&eacute;dent</a></li>
+	%endif
+	<% pageid = 1 %>
+	% while ( pageid <= attributes['items']['page_total']):
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${attributes['count']}&page=${pageid}">${pageid}</a></li>
+		<% pageid +=1 %>
+	% endwhile
+	
+	% if attributes['page'] < attributes['items']['page_total']:
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${attributes['count']}&page=${ attributes['page'] + 1 }">Suivant &gt;</a></li>
+	%endif
+	</ul>
+</div>
+% endif
+ <div id="StoreContent">
+% if 'karacos-fragment' not in attributes['request'].headers and 'Karacos-Fragment' not in attributes['request'].headers:
+ 	${attributes['storeitemsstring']}
+ %endif
+ </div>
+ <div id="social_plugins" class="inside" style="float:left;">
+	<fb:like href="http://${instance.__domain__['fqdn']}${instance._get_action_url()}" 
+		send="true" width="450" show_faces="true" font="lucida grande"></fb:like>
+	<g:plusone href="${instance.__domain__['fqdn']}${instance._get_action_url()}"></g:plusone>
+</div>
+
+</div>
+<script language="javascript">
+require(['jquery'], function($) {
+	$('body').bind('kcready', function() {
+% if 'karacos-fragment' in attributes['request'].headers or 'Karacos-Fragment' in attributes['request'].headers:
+		KaraCos.change_page({
+			id : '${instance.id}',
+			base_id : '${instance['parent_db']}',
+			url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
+			type: 'activity',
+			title: '${instance.__get_title__()}'
+			% if 'description' in instance:
+				,description: "${instance['description']}"
+			% endif
+			% if 'keywords' in instance:
+				,keywords: "${instance['keywords']}"
+			% endif
+		});
+% endif
+		KaraCos.parse_social();
+		require(['store/Store'], function(store) {
+			// Assumes store is loaded in toplevel template (it's a site with a store)
+			//$('body').bind('kcstoreloaded', function() {
+			//	store.init({url:'${instance.__store__._get_action_url()}'});
+			//});
+			$('body').bind('kcstore', function() {
+				store.show_page(${attributes['count']},${attributes['page']});
+			});
+		});
+	});
+	$('body').bind('kcauth', function() {
+		KaraCos.authManager.authenticationHeader();
+	});
+	
+});
+</script>
+% except:
+<pre>
+${sys.exc_info()}
+${traceback.format_exc()}
+</pre>
+%endtry
+

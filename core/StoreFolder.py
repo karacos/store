@@ -10,10 +10,6 @@ class StoreFolder(karacos.db['StoreParent']):
     '''
     Container for Store items
     '''
-
-    def __init__(self,parent=None,base=None,data=None):
-        karacos.db['StoreParent'].__init__(self,parent=parent,base=base,data=data)
-    
     @staticmethod
     def create(parent=None, base=None,data=None,owner=None):
         assert isinstance(data,dict)
@@ -21,3 +17,6 @@ class StoreFolder(karacos.db['StoreParent']):
         if 'WebType' not in data:
             data['WebType'] = 'StoreFolder'
         return karacos.db['WebNode'].create(parent=parent,base=False,data=data)
+
+    def __init__(self,parent=None,base=None,data=None):
+        karacos.db['StoreParent'].__init__(self,parent=parent,base=base,data=data)

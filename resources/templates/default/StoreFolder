@@ -11,8 +11,9 @@ if 'count' in request.str_params:
 	count = int(request.str_params['count'])
 if 'page' in request.str_params:
 	page = int(request.str_params['page'])
-items = instance._get_items_list(instance._get_items_by_auth_,count,page)
+items = instance._get_items_list(instance._get_web_store_items_by_auth_,count,page)
 %>
+
 % if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
 <%
 import jsontemplate
@@ -59,20 +60,20 @@ except:
 
 <aside>
 	<nav>
-	<% storefolders = instance.__store__._get_store_folders_by_id_()['data'] %>
+	<% storefolders = instance._get_store_folders_by_id_()['data'] %>
 		<ul id="aside_menu" role="listbox">
 			% for folder in storefolders:
-				<li role="menuitem"><a href="${instance.__store__._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
+				<li role="menuitem"><a href="${instance._get_action_url()}/${folder['name']}">${folder['label']}</a></li>
 			%endfor
 		</ul>
 	</nav>
 </aside>
-<div id="StoreContent">
+
 % if items['page_total'] > 1:
 <div id="store_page_nav_header" class="ui-widget-header ui-corner-all" style="text-align:center ; margin-left: 160px;">
 	<ul>
 	% if page > 1:
-		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page -1 %>">&lt; Pr&eacute;c&eacute;dent</a></li>
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=${ page -1 }">&lt; Pr&eacute;c&eacute;dent</a></li>
 	%endif
 	<% pageid = 1 %>
 	% while ( pageid <= items['page_total']):
@@ -81,119 +82,62 @@ except:
 	% endwhile
 	
 	% if page < items['page_total']:
-		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=<% page +1 %>">Suivant &gt;</a></li>
+		<li><a href="${instance._get_action_url()}/get_items_list?count=${count}&page=${ page + 1 }">Suivant &gt;</a></li>
 	%endif
 	</ul>
 </div>
-
-<div id="social_plugins" class="inside" style="float:left;">
+% endif
+ <div id="StoreContent">
+% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+ 	${storeitemsstring}
+ %endif
+ </div>
+ <div id="social_plugins" class="inside" style="float:left;">
 	<fb:like href="http://${instance.__domain__['fqdn']}${instance._get_action_url()}" 
 		send="true" width="450" show_faces="true" font="lucida grande"></fb:like>
 	<g:plusone href="${instance.__domain__['fqdn']}${instance._get_action_url()}"></g:plusone>
 </div>
 
-<script language="javascript">
-KaraCos.Store.ready(function(store) {
-		KaraCos('#aside_menu li').click(
-			function(event){
-				var url = KaraCos.$(this).find('a').attr("href");
-				event.stopImmediatePropagation();
-				event.preventDefault();
-				History.pushState(null, null, url);
-				KaraCos.$.ajax({
-					url: url,
-					headers: {'karacos-fragment': 'true'},
-					success: function(data) {
-						KaraCos('#MainContent').empty().append(data);
-					}
-				});
-			});
-		KaraCos('#aside_menu').menu({});
-	KaraCos.$("#store_page_nav_header li").button().click(
-		function(event){
-			event.stopImmediatePropagation();
-			event.preventDefault();
-			var $this = KaraCos.$(this), url;
-			url = $this.find('a').attr("href");
-			History.pushState(null, null, url);
-					KaraCos.$.ajax({
-						url: url,
-						headers: {'Karacos-Fragment': 'true'},
-						success: function(data) {
-							KaraCos('#MainContent').empty().append(data);
-						}
-					});
-		});
-	KaraCos.$(KaraCos.$("#store_page_nav_header li").get(${page})).addClass('ui-state-over');
-});
-</script>
-% endif
-<div id="StoreContent">
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
- 	${storeitemsstring}
- %endif
- </div>
-<script language="javascript">
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
-KaraCos(function() {
-% else:
-	KaraCos.change_page({
-		id : '${instance.id}',
-		base_id : '${instance['parent_db']}',
-		url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
-		type: 'activity',
-		title: '${instance.__get_title__()}'
-		% if 'description' in instance:
-			,description: "${instance['description']}"
-		% endif
-		% if 'keywords' in instance:
-			,keywords: "${instance['keywords']}"
-		% endif
-	});
-	KaraCos.authManager.authenticationHeader();
-%endif
-	KaraCos.Store.ready(function(store) {
-		try {
-			KaraCos('#aside_menu li').click(
-				function(event){
-					var url = KaraCos.$(this).find('a').attr("href");
-					event.stopImmediatePropagation();
-					event.preventDefault();
-					History.pushState(null, null, url);
-					KaraCos.$.ajax({
-						url: url,
-						headers: {'karacos-fragment': 'true'},
-						success: function(data) {
-							KaraCos('#MainContent').empty().append(data);
-						}
-					});
-				});
-			KaraCos('#aside_menu').menu({});
-			if (typeof store.show_folder === "undefined") {
-				/* var appendEl = document.head,
-				    scriptEl = document.createElement('script');
-				scriptEl.src = '/fragment/StoreFolder.js?folder_id=${instance.id}&base_id=${instance['parent_db']}';
-				//scriptEl.setAttribute('defer','defer');
-				appendEl.appendChild(scriptEl);
-			*/
-				KaraCos.$.ajax({
-	    			dataType : 'script',
-					url: "/fragment/StoreFolder.js?folder_id=${instance.id}&base_id=${instance['parent_db']}",
-					async: false
-				});
-			}
-			store.show_folder('${instance._get_action_url()}', ${count}, ${page});
-		} catch(e) {
-			console.log(e);
-		}
-	});
-	KaraCos.parse_social();
-	KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
-});
-%endif
-</script>
 </div>
+<script language="javascript">
+require(['jquery'], function($) {
+	$('body').bind('kcready', function() {
+% if 'karacos-fragment' in request.headers or 'Karacos-Fragment' in request.headers:
+		KaraCos.change_page({
+			id : '${instance.id}',
+			base_id : '${instance['parent_db']}',
+			url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
+			type: 'activity',
+			title: '${instance.__get_title__()}'
+			% if 'description' in instance:
+				,description: "${instance['description']}"
+			% endif
+			% if 'keywords' in instance:
+				,keywords: "${instance['keywords']}"
+			% endif
+		});
+% endif
+		KaraCos.parse_social();
+	});
+	$('body').bind('kcauth', function() {
+		KaraCos.authManager.authenticationHeader();
+	});
+	require(['store/karacos-store'], function() {
+		$('body').bind('kcstoreloaded', function() {
+			KaraCos.Store.init({url:'${instance.__store__._get_action_url()}'});
+		});
+		$('body').bind('kcstore', function() {
+			//var store = KaraCos.Store;
+			require(['site/storeFolder-page'],
+				function(store){
+					store.show_page(${count},${page});
+			});
+		});
+	});
+});
+</script>
+
+
 % except:
 	some errors :
 	<pre>
