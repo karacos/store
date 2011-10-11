@@ -2,8 +2,6 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 	var 
 		karacos = KaraCos,
 		store = {
-			is_ready: false,
-			ready_func: [],
 			/**
 			 * 
 			 */
@@ -56,7 +54,6 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 							async: true,
 							success: function(data) {
 								if (data.success === true) {
-									store.is_ready = true;
 									console.log('Initializing store at url ' + store.store_url);
 									store.id = data.data.id;
 									store.base_id = data.data.base_id;
@@ -128,7 +125,7 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 					console.log(e);
 				}
 			},
-			show_page: function(count,page){
+			show_page: function(url,method,count,page){
 				$($("#store_page_nav_header li").get(page)).addClass('ui-state-over');
 				var store = this;
 				console.log("Running show_page");
@@ -142,8 +139,8 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 						async: false,
 						success: function(jstsrc) {
 							template = jsontemplate.Template(jstsrc, karacos.jst_options);
-							karacos.action({ url: store.store_url,
-								method: "get_store_items_list",
+							karacos.action({ url: url,
+								method: method,
 								async: false,
 								params:{count:count,page:page},
 								callback: function(data) {

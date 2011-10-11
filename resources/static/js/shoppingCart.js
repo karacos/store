@@ -291,7 +291,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					 */
 					function verify_email(callback) {
 						if (KaraCos.authManager.user_actions_forms.email === null) {
-							KaraCos.$.ajax({
+							$.ajax({
 								url:"/fragment/set_user_email.jst",
 								context: document.body,
 								type: "GET",
@@ -442,9 +442,11 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					});
 				}
 		};
+		var ShoppingCartConstructor = function(){
+			this.init();
+		};
+		ShoppingCart.prototype = jQuery.extend(true,ShoppingCartConstructor.prototype,shoppingCartProto);
 		
-		ShoppingCart.prototype = jQuery.extend(true,KaraCos.ShoppingCart.prototype,shoppingCartProto);
-		
-		return KaraCos.ShoppingCart = ShoppingCart;
+		return KaraCos.ShoppingCart = ShoppingCartConstructor;
 		
 });

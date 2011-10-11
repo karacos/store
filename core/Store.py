@@ -298,7 +298,7 @@ class Store(karacos.db['StoreParent']):
         cart['items'][item_id] = int(number)
         cart.save()
         cart.set_number_item(item,int(number))
-        return {'status' :'success', 'message':_("item modifie avec succes")}
+        return {'status' :'success', 'message':_("item modifie avec succes"), "success": True}
         
     
     @karacos._db.isaction

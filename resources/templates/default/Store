@@ -11,6 +11,7 @@ if 'count' in attributes['request'].str_params:
 	attributes['count'] = int(attributes['request'].str_params['count'])
 if 'page' in attributes['request'].str_params:
 	attributes['page'] = int(attributes['request'].str_params['page'])
+attributes['method'] = 'get_store_items_list'
 attributes['items'] = instance._get_items_list(instance._get_web_store_items_by_auth_,attributes['count'],attributes['page'])
 %>
 

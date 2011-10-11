@@ -69,7 +69,7 @@ require(['jquery'], function($) {
 			//	store.init({url:'${instance.__store__._get_action_url()}'});
 			//});
 			$('body').bind('kcstore', function() {
-				store.show_page(${attributes['count']},${attributes['page']});
+				store.show_page("${instance._get_action_url()}","${attributes['method']}",${attributes['count']},${attributes['page']});
 			});
 		});
 	});
