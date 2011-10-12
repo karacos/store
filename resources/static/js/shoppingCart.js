@@ -346,14 +346,14 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 							verify_email(function(){
 								KaraCos.Store.cart.add_adr('shipping');
 							});
-						});
+						},"Nous devons vous identifier pour enregistrer votre adresse"); // provideLoginUI sipping
 					}); // click
 					cart.find('.set_billing_button').click(function(){
 						KaraCos.authManager.provideLoginUI(function(){
 							verify_email(function(){
 								KaraCos.Store.cart.add_adr('billing');
 							});
-						});
+						},"Nous devons vous identifier pour enregistrer votre adresse");// provideLoginUI billing
 					}); // click
 					cart.check_state();
 					
