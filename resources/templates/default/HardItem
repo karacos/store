@@ -108,107 +108,115 @@ if 'main_pic' in instance:
 ## typeof (HardItem object)
 
 <script language="javascript">
-% if 'karacos-fragment' in request.headers or 'Karacos-Fragment' in request.headers:
-	KaraCos.change_page({
-		id : '${instance.id}',
-		base_id : '${instance['parent_db']}',
-		url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
-		type: 'activity',
-		title: '${instance.__get_title__()}'
-		% if 'description' in instance:
-			,description: "${instance['description']}"
-		% endif
-		% if 'keywords' in instance:
-			,keywords: "${instance['keywords']}"
-		% endif
-	});
-	KaraCos.authManager.authenticationHeader();
-%else:
-KaraCos(function() {
-%endif
-		(function(submenu){
-		if (typeof KaraCos.actionMenu === "undefined") {
-			KaraCos.actionMenu = {};
-			KaraCos.actionMenu.actionWindow = KaraCos('<div/>');
-			KaraCos('body').append(KaraCos.actionMenu.actionWindow);
-		}
-				<%include file="${instance.get_menu_template_uri()}"/>
-		})(KaraCos('#hardItem_side_menu'));
-		KaraCos('#hardItem_side_menu').menu();
-		KaraCos('#aside_menu li').click(
-			function(event){
-				var url = KaraCos.$(this).find('a').attr("href");
+require(['jquery'], function($) {
+	$('body').bind('kcready', function() {
+	var karacos = KaraCos;
+	% if 'karacos-fragment' in request.headers or 'Karacos-Fragment' in request.headers:
+		karacos.change_page({
+			id : '${instance.id}',
+			base_id : '${instance['parent_db']}',
+			url : 'http://${instance.__domain__['fqdn']}${instance._get_action_url()}',
+			type: 'activity',
+			title: '${instance.__get_title__()}'
+			% if 'description' in instance:
+				,description: "${instance['description']}"
+			% endif
+			% if 'keywords' in instance:
+				,keywords: "${instance['keywords']}"
+			% endif
+		});
+		karacos.authManager.authenticationHeader();
+	% endif
+	$('body').bind('kcstore', function() {
+		var auth = karacos.authManager;
+			require(['/fragment/actions_menu.js?instance_id=' +
+					         karacos.config.page_id + "&base_id=" + karacos.config.page_base_id],
+		        function(actionsMenu) {
+					(function(submenu){
+						if (typeof actionMenu === "undefined") {
+							actionMenu = {};
+							actionMenu.actionWindow = karacos('<div/>');
+							$('body').append(karacos.actionMenu.actionWindow);
+						}
+						<%include file="${instance.get_menu_template_uri()}"/>
+				})($('#hardItem_side_menu'));
+			});
+			$('#hardItem_side_menu').menu();
+			$('#aside_menu li').click(
+				function(event){
+					var url = $(this).find('a').attr("href");
+					event.stopImmediatePropagation();
+					event.preventDefault();
+					History.pushState(null, null, url);
+					$.ajax({
+						url: url,
+						headers: {'karacos-fragment': 'true'},
+						success: function(data) {
+							$('#MainContent').empty().append(data);
+						}
+					});
+				});
+			$('#aside_menu').menu({});
+		
+			$("#store_menu ul li button.save_button").button()
+			.click(function(event) {
 				event.stopImmediatePropagation();
 				event.preventDefault();
-				History.pushState(null, null, url);
-				KaraCos.$.ajax({
-					url: url,
-					headers: {'karacos-fragment': 'true'},
-					success: function(data) {
-						KaraCos('#MainContent').empty().append(data);
-					}
-				});
+				m = VIE.ContainerManager.getInstanceForContainer($("#store_main_container"));
+				Backbone.sync('_update',m);
 			});
-		KaraCos('#aside_menu').menu({});
-	
-	KaraCos("#store_menu ul li button.save_button").button()
-	.click(function(event) {
-		event.stopImmediatePropagation();
-		event.preventDefault();
-		m = VIE.ContainerManager.getInstanceForContainer(KaraCos("#store_main_container"));
-		Backbone.sync('_update',m);
-	});
-	KaraCos.Store.activate_item_cart_buttons();
-	KaraCos("#store_menu ul li button.action_button").button()
-	.click(function(event) {
-		var btn = KaraCos.$(this);
-		event.stopImmediatePropagation();
-		event.preventDefault();
-		KaraCos.action({ url: btn.attr('url'),
-				method: btn.attr('method'),
-				async: false,
-				params: {},
-				callback: function(data) {
-					if (data.success) {
-						KaraCos('[method]').show();
-						btn.hide();
-					} else {
-						alert(data.message);
-					}
-				}});
-	});
-	$("img.kc_att").click(function(event){
-			var $this = $(this),
-				max_width = 800, $img,
-				att_show = $('#kc_att_show'),
-				imgwidth, imgheight, ratio;
-			if (att_show.length === 0) {
-				att_show = $('<div id="kc_att_show"/>');
-				$('body').append(att_show.hide());
-			}
-			$img = $('<img>').attr("src",$this.attr("src"));
-			att_show.empty().append($img);
-			att_show.dialog({modal: true});
-			imgwidth = att_show.find('img').innerWidth();
-			imgheight = att_show.find('img').innerHeight();
-			if ( imgheight > att_show.innerHeight()) {
-				ratio = imgheight / att_show.innerHeight();
-				imgheight = att_show.innerHeight();
-				imgwidth = imgwidth / ratio;
-			}
-			if ( imgwidth > max_width) {
-				ratio = imgwidth / max_width;
-				imgwidth = max_width;
-				imgheight = imgheight / ratio;
-			}
-			att_show.dialog("option", "height",imgheight+10);
-			att_show.dialog("option", "width",imgwidth+10);
-			$img.width(imgwidth).height(imgheight);
-			
+			karacos.Store.activate_item_cart_buttons();
+			$("#store_menu ul li button.action_button").button()
+			.click(function(event) {
+				var btn = $(this);
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				karacos.action({ url: btn.attr('url'),
+						method: btn.attr('method'),
+						async: false,
+						params: {},
+						callback: function(data) {
+							if (data.success) {
+								$('[method]').show();
+								btn.hide();
+							} else {
+								alert(data.message);
+							}
+						}});
+			});
+			$("img.kc_att").click(function(event){
+				var $this = $(this),
+					max_width = 800, $img,
+					att_show = $('#kc_att_show'),
+					imgwidth, imgheight, ratio;
+				if (att_show.length === 0) {
+					att_show = $('<div id="kc_att_show"/>');
+					$('body').append(att_show.hide());
+				}
+				$img = $('<img>').attr("src",$this.attr("src"));
+				att_show.empty().append($img);
+				att_show.dialog({modal: true});
+				imgwidth = att_show.find('img').innerWidth();
+				imgheight = att_show.find('img').innerHeight();
+				if ( imgheight > att_show.innerHeight()) {
+					ratio = imgheight / att_show.innerHeight();
+					imgheight = att_show.innerHeight();
+					imgwidth = imgwidth / ratio;
+				}
+				if ( imgwidth > max_width) {
+					ratio = imgwidth / max_width;
+					imgwidth = max_width;
+					imgheight = imgheight / ratio;
+				}
+				att_show.dialog("option", "height",imgheight+10);
+				att_show.dialog("option", "width",imgwidth+10);
+				$img.width(imgwidth).height(imgheight);
+				
+			});
+		
+			karacos.Store.init({url:'${instance.__store__._get_action_url()}'});
 		});
-KaraCos.Store.init_store({url:'${instance.__store__._get_action_url()}'});
-KaraCos.parse_social();
-% if 'karacos-fragment' not in request.headers and 'Karacos-Fragment' not in request.headers:
+		karacos.parse_social();
 	});
-% endif
+});
 </script>
