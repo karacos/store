@@ -22,8 +22,8 @@
 	% try:
 		(function storeInstanceMenu(submenu){
 			var 
-			item;
-			actionwindow = KaraCos.actionMenu.actionWindow;
+				item;
+				actionwindow = KaraCos.actionMenu.actionWindow;
 			
 		
 			})(submenu);
