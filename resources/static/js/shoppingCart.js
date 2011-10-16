@@ -290,6 +290,8 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					 * @param callback
 					 */
 					function verify_email(callback) {
+						var cart = this;
+						
 						if (KaraCos.authManager.user_actions_forms.email === null) {
 							$.ajax({
 								url:"/fragment/set_user_email.jst",
@@ -299,10 +301,10 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 								async: true,
 								success: function(data){
 	//						var emailtemplate = jsontemplate.Template(data, KaraCos.jst_options);
-									store.emailwin = KaraCos("#set_email_window");
+									store.emailwin = $("#set_email_window");
 									if (store.emailwin.length === 0) {
-										KaraCos('body').append('<div id="set_email_window"/>');
-										store.emailwin = KaraCos("#set_email_window");
+										$('body').append('<div id="set_email_window"/>');
+										store.emailwin = $("#set_email_window");
 									} // emailwin
 									store.emailwin.empty().append(data);
 									store.emailwin.dialog({width: '600px',modal:true}).show();
@@ -338,7 +340,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 							callback();
 						}
 					}
-					var cart = this;
+					
 					cart.win.empty().append(cart.template.expand(cart.data));
 					
 					cart.find('.set_shipping_button').click(function(){
@@ -360,10 +362,31 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					KaraCos.Store.activate_item_cart_buttons("#shopping_cart_grid",function(model) {
 						cart.process_change_number(model);
 					});
+					
+					// Waiting Screen while payment transaction is initialized with Payment Service Provider
+					cart.paymentWaiting = cart.find("#paymentWaiting");
+					if (cart.paymentWaiting.length === 0) {
+						// TODO: l10n
+						cart.append('<div style="display:none" id="paymentWaiting"></div>');
+						cart.paymentWaiting = cart.find("#paymentWaiting");
+					}
 					KaraCos.button(cart.find('.pay_button'),function(data){
 						if (data.success) {
-							document.location = data.data.url;					
+							document.location = data.data.url;
+						} else {
+							cart.paymentWaiting.empty()
+								.append("<p>Erreur pendant la transaction, votre panier est annulé</p>");
 						}
+					});
+					
+					cart.find('.pay_button').click(function paymentWaiting(event){
+						cart.paymentWaiting
+							.empty()
+							.append('<p>Vous allez etre redirrigés vers le prestataire de paiement</p>')
+							.dialog({
+								modal: true
+							})
+							.show();
 					});
 				},
 				/**

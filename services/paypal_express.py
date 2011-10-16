@@ -22,8 +22,11 @@ class Service(karacos.apps['store'].providers.paypal.Service):
         assert isinstance(payment, karacos.db['Payment'])
         payment['service'] = {'name':self['_name']}
         bill = cart._get_bill_data()
-        kw = {'PAYMENTREQUEST_0_AMT':  bill['total'],
+        kw = {'AMT': bill['total'],
+              'PAYMENTREQUEST_0_AMT':  bill['total'],
               'PAYMENTREQUEST_0_CURRENCYCODE': 'EUR',
+              'PAYMENTREQUEST_0_PAYMENTACTION': 'Sale',
+              #'PAYMENTREQUEST_0_SHIPPINGAMT': bill['shipping'],
               'RETURNURL':"http://%s%s/pay_callback/%s/return" % (cart.__store__.__domain__['fqdn'],
                                                                    cart.__store__._get_action_url(),
                                                                    payment.id),
@@ -38,7 +41,7 @@ class Service(karacos.apps['store'].providers.paypal.Service):
               'PAYMENTREQUEST_0_PAYMENTACTION': 'Sale',
               'PAYMENTREQUEST_0_TAXAMT': bill['tax_total'],
               'PAYMENTREQUEST_0_TRANSACTIONID': payment.id,
-              'PAYMENTREQUEST_0_SHIPPINGAMT': bill['shipping']
+              ]
               }
         i = 0
         for  item  in bill['items'].values():
@@ -83,6 +86,7 @@ class Service(karacos.apps['store'].providers.paypal.Service):
         if action == 'return':
             kw = {'TOKEN': payment['service']['SetExpressCheckout']['response']['TOKEN'][0],
                   'PAYERID':payment['service']['GetExpressCheckoutDetails']['response']['PAYERID'][0],
+                  'AMT':payment['service']['GetExpressCheckoutDetails']['response']['AMT'][0],
                   'PAYMENTREQUEST_0_AMT':payment['service']['GetExpressCheckoutDetails']['response']['AMT'][0],
                   'PAYMENTACTION':'Sale'
                   }
@@ -96,4 +100,7 @@ class Service(karacos.apps['store'].providers.paypal.Service):
             response = self.call('DoExpressCheckoutPayment', **kw)
             payment['service']['DoExpressCheckoutPayment']['response'] = response.raw
             payment.save()
+            if payment['service']['DoExpressCheckoutPayment']['response']['ACK'][0] == "Failure":
+                return {'success': False, 'data': { "id": payment.id,
+                            "response": payment['service']['DoExpressCheckoutPayment']['response']}}
             return payment.do_validate()
