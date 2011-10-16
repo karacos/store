@@ -15,10 +15,10 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 				 * Object Initialization
 				 */
 				init: function() {
-					this.win = KaraCos('#Shopping_cart');
+					this.win = $('#Shopping_cart');
 					if (this.win.length == 0) {
-						KaraCos('body').append('<div id="Shopping_cart"/>');
-						this.win = KaraCos('#Shopping_cart');
+						$('body').append('<div id="Shopping_cart"/>');
+						this.win = $('#Shopping_cart');
 					}
 				},
 				/**
@@ -41,7 +41,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					winid = cart.adrtype + "_adress_form";
 					store.adrwin = KaraCos("#" + winid);
 					if (store.adrwin.length === 0) {
-						KaraCos('body').append('<div id="'+ winid +'"/>');
+						$('body').append('<div id="'+ winid +'"/>');
 						store.adrwin = KaraCos("#" + winid);
 					} // store.adrwin.length
 					store.adrwin.empty().text("loading...");
@@ -61,7 +61,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 							if (store.user_adrs_list.length > 0) {
 								// there are some known addresses of this user
 								adraccord.prepend('<h3>Choisir une adresse</h3><div id="kc_existing_adresses"/>');
-								KaraCos.$.ajax({ url: "/fragment/adr_show.jst",
+								$.ajax({ url: "/fragment/adr_show.jst",
 									context: document.body,
 									type: "GET",
 									async: true,
@@ -110,7 +110,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 								 * 
 								 */
 								var 
-								form = KaraCos.$(this).closest('form');
+								form = $(this).closest('form');
 								
 								event.stopImmediatePropagation();
 								event.preventDefault();
@@ -170,7 +170,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 						params: params,
 						callback: function(data) {
 							store.cart.billing_adr = data.data;
-							KaraCos.$.ajax({ url: "/fragment/adr_show_cart.jst",
+							$.ajax({ url: "/fragment/adr_show_cart.jst",
 								context: document.body,
 								type: "GET",
 								cache: false,
@@ -227,7 +227,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 								cart.data.data.cart_net_total = Number(Number(cart.data.data.cart_net_total) + Number(data.data.shipping)).toFixed(2).toString();
 								cart.data.data.shipping = data.data.shipping;
 								cart.process_render();						
-								KaraCos.$.ajax({ url: "/fragment/adr_show_cart.jst",
+								$.ajax({ url: "/fragment/adr_show_cart.jst",
 									context: document.body,
 									type: "GET",
 									cache: false,
@@ -285,12 +285,12 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 				 * Process rendering and event bindings
 				 */
 				process_render: function() {
+					var cart = this;
 					/**
 					 * If user email is not set, ask user for it
 					 * @param callback
 					 */
 					function verify_email(callback) {
-						var cart = this;
 						
 						if (KaraCos.authManager.user_actions_forms.email === null) {
 							$.ajax({
@@ -367,7 +367,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 					cart.paymentWaiting = cart.find("#paymentWaiting");
 					if (cart.paymentWaiting.length === 0) {
 						// TODO: l10n
-						cart.append('<div style="display:none" id="paymentWaiting"></div>');
+						cart.win.append('<div style="display:none" id="paymentWaiting"></div>');
 						cart.paymentWaiting = cart.find("#paymentWaiting");
 					}
 					KaraCos.button(cart.find('.pay_button'),function(data){

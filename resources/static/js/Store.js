@@ -191,5 +191,34 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 	// Setting a global (compatibility issue)
 	karacos.Store = store;
 	$('body').trigger('kcstoreloaded', [store]);
+	// If payment_validation
+	if (window.kc_method_result !== false) {
+		if (typeof window.kc_method_result.datatype !== "undefined") {
+			if (window.kc_method_result.datatype === "payment_validation") {
+				(function(){ // immediate function for scope variables declaration
+					var payment_validation = $("#payment_validation");
+					if (payment_validation.length === 0) {
+						payment_validation = $('<div style="display:none" id="payment_validation"></div>');
+						$('body').append(payment_validation);
+					}
+					if (window.kc_method_result.success) {
+						payment_validation.empty()
+							.append("<p>Votre commande est validée</p>" +
+									"<p>Merci pour votre confiance</p>")
+							.dialog({modal: true}).show();
+					} else {
+						payment_validation.empty()
+						.append("<p>Erreur lors de la validation du paiement</p>" +
+								"<p>Votre commande est annulée</p>")
+						.dialog({modal: true}).show();
+					}
+					
+				})();
+			}
+		}
+	}
+	// Inform user about it's payment transaction status
+	
+	
 	return store;
 });

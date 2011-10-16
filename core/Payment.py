@@ -49,14 +49,19 @@ class Payment(karacos.db['Node']):
         self['status'] = 'canceled'
         self.save()
         self.__cart__._do_payment_cancelled(self)
-        return "Operation Cancelled"
+        return {'status':'success', 'message':"Operation Cancelled", 'success': False,
+                'datatype': 'payment_validation'}
     
     def do_validate(self):
         "When payment is validated, service impl must calls do_validate()"
         self['status'] = 'validated'
         self.save()
         self.__cart__._do_payment_validated(self)
-        return {'status':'success', 'message':"Operation Validated"}
+        return {'status':'success', 'message':"Operation Validated", 'success': True,
+                'datatype': 'payment_validation', 'data': {
+                    'cart_id':self.__cart__.id,
+                    'amount':self.__cart__._get_cart_array()['cart_total']
+        }}
         
         
         
