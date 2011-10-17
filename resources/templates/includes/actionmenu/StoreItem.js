@@ -18,13 +18,14 @@
 <% node_actions = instance._get_actions() %>
 (function(submenu){
 	var 
+		karacos = KaraCos,
 		item, subsubmenu,
-		actionwindow = KaraCos.actionMenu.actionWindow;
+		actionwindow = karacos.actionMenu.actionWindow;
 	% if 'publish_node' in node_actions:
 		
-		item = KaraCos('<li class="publish_node_storeitem"><a href="#">Mettre en vente</a></li>');
+		item = $('<li class="publish_node_storeitem"><a href="#">Mettre en vente</a></li>');
 		item.click(function(){
-			KaraCos.action({ url: "${instance._get_action_url()}",
+			karacos.action({ url: "${instance._get_action_url()}",
 				method: 'publish_node',
 				async: false,
 				params: {},
@@ -47,9 +48,9 @@
 	%endif
 	% if 'unpublish_node' in node_actions:
 		
-		item = KaraCos('<li class="unpublish_node_storeitem"><a href="#">Retirer de la vente</a></li>');
+		item = $('<li class="unpublish_node_storeitem"><a href="#">Retirer de la vente</a></li>');
 		item.click(function(){
-			KaraCos.action({ url: "${instance._get_action_url()}",
+			karacos.action({ url: "${instance._get_action_url()}",
 				method: 'unpublish_node',
 				async: false,
 				params: {},
@@ -78,38 +79,41 @@
 		submenu.find(".unpublish_node_storeitem").hide();
 	%endif
 	% if 'set_main_pic' in node_actions:
-		item = KaraCos('<li id="unpublish_node_storeitem"><a href="#">Image principale</a></li>');
+		item = $('<li id="unpublish_node_storeitem"><a href="#">Image principale</a></li>');
 		item.click(function(){
-			KaraCos.Browser({'panels':
-				[{  type:'grid',
-					template: '/fragment/set_main_pic_grid.jst',
-					selectiontype: 'single',
-					datasource:{
-						type:'json',
-						url:'${instance._get_action_url()}',
-						params: {method:'get_atts', id:1, params:{}}
-					},
-					onselect: function($item){
-						var img_name = $item.closest('[about]').attr('about').split(':')[3];
-						console.log("Setting " + img_name + " as main pic.");
-						KaraCos.action({ url: "${instance._get_action_url()}",
-							method: 'set_main_pic',
-							async: false,
-							params: {main_pic:img_name},
-							callback: function(data) {
-								if (data.success) {
-									KaraCos.Browser.dialog('hide');
+			require(['karacos/core/browser'], function(browser) {
+				KaraCos.Browser({'panels':
+					[{  title: "Choisissez une image",
+						type:'grid',
+						template: '/fragment/set_main_pic_grid.jst',
+						selectiontype: 'single',
+						datasource:{
+							type:'json',
+							url:'${instance._get_action_url()}',
+							params: {method:'get_atts', id:1, params:{}}
+						},
+						onselect: function($item){
+							var img_name = $item.closest('[about]').attr('about').split(':')[3];
+							console.log("Setting " + img_name + " as main pic.");
+							karacos.action({ url: "${instance._get_action_url()}",
+								method: 'set_main_pic',
+								async: false,
+								params: {main_pic:img_name},
+								callback: function(data) {
+									if (data.success) {
+										browser.dialog('hide');
+									}
 								}
-							}
-						});
-					}
-				}]
+							});
+						}
+					}]
+				});
 			});
 		});
 		submenu.append(item);
 	% endif
-	item = KaraCos('<li><a href="#">Resource</a><li>');
-	subsubmenu = KaraCos('<ul></ul>');
+	item = $('<li><a href="#">Resource</a><li>');
+	subsubmenu = $('<ul></ul>');
 	(function(submenu) {
 		<%include file="/includes/actionmenu/Resource.js"/>
 	})(subsubmenu);

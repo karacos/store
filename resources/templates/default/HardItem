@@ -83,7 +83,7 @@ if 'main_pic' in instance:
 		## item_info
 </article> 
 <div class="" style="float:left; width: 200px">
-<div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
+	<div class="add_to_cart_panel ui-widget-header ui-corner-all" typeof="karacos:method" about="urn:uuid:${instance.id}:set_number_item">
 	    <div style="display:none" property="item_id">${instance.id}</div>
 	    <div style="display:none" property="url">${instance.__store__._get_action_url()}</div>
 	    <div class="item_cart_control">
@@ -92,6 +92,7 @@ if 'main_pic' in instance:
 	        <div><div class="dec_number" ></div></div>
 	    </div>
 	</div>
+</div>
 <div class="inside">
 <ul id="hardItem_side_menu" >
 </ul>
