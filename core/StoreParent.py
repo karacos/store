@@ -115,16 +115,19 @@ class StoreParent(karacos.db['WebNode']):
         assert kw['type'] == 'Soft' or kw['type'] == 'Hard'
         type = '%sItem' % kw['type']
         del kw['type']
-        assert 'buy_cost' in kw
-        kw['buy_cost'] = float(kw['buy_cost'])
-        assert 'min_sell_price' in kw
-        kw['min_sell_price'] = float(kw['min_sell_price'])
+        assert 'title' in kw
         assert 'public_price' in kw
         kw['public_price'] = float(kw['public_price'])
-        assert 'title' in kw
-        kw['title'] = kw['title']
         assert 'weight' in kw
         kw['weight'] = float(kw['weight'])
+        if 'buy_cost' in kw:
+            kw['buy_cost'] = float(kw['buy_cost'])
+        else:
+            kw['buy_cost'] = 0
+        if 'min_sell_price' in kw:
+            kw['min_sell_price'] = float(kw['min_sell_price'])
+        else:
+            kw['min_sell_price'] = 0
         assert 'tax' in kw
         kw['tax'] = float(kw['tax'])
         assert 'stock' in kw
