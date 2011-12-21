@@ -127,10 +127,10 @@ class ShoppingCart(karacos.db['Node']):
         result = {'items': self['cart_array'], 'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0}
         for item in self['cart_array']:
             try:
-                result['cart_total_weight'] = int(result['cart_total_weight']) + int(item['weight']) * int(self['items'][item['id']])
                 result['cart_total'] = "%.2f" % (float(result['cart_total']) + float(item['total']))
                 result['cart_tax_total'] = "%.2f" % (float(result['cart_tax_total']) + float(item['tax_total']))
                 result['cart_net_total'] = "%.2f" % (float(result['cart_net_total']) + float(item['net_total']))
+                result['cart_total_weight'] = int(result['cart_total_weight']) + int(item['weight']) * int(self['items'][item['id']])
             except:
                 self.log.log_exc( sys.exc_info(),'warn')
         if 'billing_adr' in self:
@@ -280,6 +280,7 @@ class ShoppingCart(karacos.db['Node']):
         session = karacos.serving.get_session()
         del session['cart_id']
         result  = self.db[self['childrens'][name]]
+        self.__store__._get_backoffice_node()._validate_cart(self)
         self.__store__._get_backoffice_node()._set_payment_created(self,result)
         return result
     

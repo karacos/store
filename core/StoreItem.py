@@ -41,7 +41,15 @@ class StoreItem(karacos.db['Resource']):
             selfsave = True
         if selfsave:
             self.save()
-    
+    def GET(self):
+        return {"success": True, "data": {
+                        "id": self.id,
+                        "base_id":self['base_id'],
+                        "title": self['title'],
+                        "content": self["content"],
+                        "name": self['name'],
+                        "public_price": self['public_price']
+                    }}
     def _is_sell_open(self):
         if 'sell_open' not in self:
             self['sell_open'] = False

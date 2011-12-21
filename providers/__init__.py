@@ -5,7 +5,7 @@ Wrapper d'appel a ces services (ESB like)
 
 import karacos
 
-import paypal
+import paypal, paybox
 
 _available_providers = ["paypal"]
 

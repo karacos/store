@@ -537,6 +537,9 @@ class Store(karacos.db['StoreParent']):
                 if svc_conf == 'paypal_express':
                     self.set_paypal_express_conf()
                     self.set_paypal_express_form(confform)
+                if svc_conf == 'paybox':
+                    self.set_paybox_conf()
+                    self.set_paybox_form(confform)
                 forms.append(confform)
         forms.append(form)
         result = forms
@@ -557,6 +560,22 @@ class Store(karacos.db['StoreParent']):
             if key not in self['conf_services']['paypal_express']:
                 self['conf_services']['paypal_express'][key] = default[key]
         self.save()
+    
+    def set_paybox_form(self,form):
+        for key in self['conf_services']['paybox'].keys():
+            field = {'name' : key,
+                     'title': key,
+                    'value' : self['conf_services']['paybox'][key],
+                    'dataType': 'TEXT'
+                     }
+            form['fields'].append(field)
+        
+    def set_paybox_conf(self):
+        default = karacos.apps['store'].providers.paybox._default_conf
+        for key in default.keys():
+            if key not in self['conf_services']['paybox']:
+                self['conf_services']['paybox'][key] = default[key]
+        self.save()
         
         
     @karacos._db.isaction
@@ -564,7 +583,7 @@ class Store(karacos.db['StoreParent']):
         """
         """
         assert 'svc_name' in kw
-        assert kw['svc_name'] in ['paypal_express'], "Incorrect service Name"
+        assert kw['svc_name'] in ['paypal_express', 'paybox'], "Incorrect service Name"
         svc_name = kw['svc_name']
         del kw['svc_name']
         if 'conf_services' not in self:
@@ -608,17 +627,51 @@ class Store(karacos.db['StoreParent']):
     @karacos._db.isaction
     def pay_cart(self,*args,**kw):
         """
+        Pay a regular shopping cart
         """
         assert 'service' in kw
         service = kw['service']
         assert service in self.__get_services__()
-        userojb = karacos.serving.get_session().get_user_auth()
-        person = self.__domain__._get_person_data()
         cart = self.get_open_cart_for_user()
         payment = cart._create_payment(self._get_service(service))
         return payment.do_forward()
     
-
+    @karacos._db.isaction
+    def pay_dummy_cart(self,*args,**kw):
+        """
+        Pay a dummy cart, amount and more info comes from inbound data
+        """
+        assert 'service' in kw
+        assert 'amount' in kw
+        assert 'email' in kw
+        service = kw['service']
+        assert service in self.__get_services__()
+        # TODO : build a shopping cart
+        cart = self.get_open_cart_for_user()
+        cart['customer_mail'] = kw['email']
+        cart['cart_array'] = [{'id': "dummy_item",
+                                        'name':"dummy_item",
+                                        'title': "dummy_item",
+                                        'tax':"0",
+                                        'price':kw['amount'],
+                                        'net_price':kw['amount'],
+                                        'weight': 0,
+                                        'number':1,
+                                        'total': kw['amount'],
+                                        'tax_total': 0,
+                                        'net_total':kw['amount']}]
+        cart.save()
+        
+        payment = cart._create_payment(self._get_service(service))
+        return payment.do_forward()
+    pay_dummy_cart.form = {
+            'title': _("Payer"),
+         'submit': _('Payer'),
+         'notice': _("Paiement immediat"),
+         'fields': [{'name':'service', 'title':'Service','dataType': 'TEXT'},
+                    {'name':'amount', 'title':'Montant','dataType': 'TEXT'},
+                    {'name':'email', 'title':'Email client','dataType': 'TEXT'}]
+         }
     @karacos._db.isaction
     def pay_callback(self,*args,**kwds):
         """
