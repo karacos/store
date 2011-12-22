@@ -1,6 +1,6 @@
 
 import os
-import subprocess
+from subprocess import Popen, PIPE, STDOUT
 import karacos
 
 _default_conf = {
@@ -8,6 +8,7 @@ _default_conf = {
         "PBX_SITE": "1999888",
         "PBX_RANG": "99",
         "PBX_IDENTIFIANT": "2",
+        "PBX_OUTPUT": "D",
         "PBX_DEVISE": "978", #Code devise EURO     
     }
 
@@ -30,6 +31,7 @@ class Service(dict):
         params = [self.__conf__["binary"], 'PBX_MODE=4']
         assert len(self.__conf__["PBX_SITE"]) == 7
         assert len(self.__conf__["PBX_RANG"]) == 2
+        assert len(self.__conf__["PBX_OUTPUT"]) == 1
         assert len(self.__conf__["PBX_IDENTIFIANT"]) >= 1 and len(self.__conf__["PBX_IDENTIFIANT"]) <= 9
         assert len(kw['params']["PBX_IDENTIFIANT"]) >= 1 and len(kw['params']["PBX_IDENTIFIANT"]) <= 9
         assert  len(kw['params']['PBX_ANNULE']) <= 150
@@ -50,9 +52,16 @@ class Service(dict):
         assert  len(kw['params']['PBX_DEVISE']) == 3
         assert  len(kw['params']['PBX_CMD']) <= 250 and len(kw['params']['PBX_CMD']) >= 1
         
-        params.append("PBX_SITE=%s" % self.__conf__["PBX_SITE"])
-        params.append("PBX_RANG=%s" % self.__conf__["PBX_RANG"])
-        params.append("PBX_IDENTIFIANT=%s" % self.__conf__["PBX_IDENTIFIANT"])
+        params.append(str("PBX_SITE=%s" % self.__conf__["PBX_SITE"]))
+        params.append(str("PBX_OUTPUT=D"))#%s" % self.__conf__["PBX_OUTPUT"])) # Should no be choosable
+        params.append(str("PBX_RANG=%s" % self.__conf__["PBX_RANG"]))
+        params.append(str("PBX_IDENTIFIANT=%s" % self.__conf__["PBX_IDENTIFIANT"]))
         for pkey in kw['params'].keys():
-            params.append("%s=%s" % (pkey, kw['params'][pkey]))
-        return subprocess.call(params)
+            params.append(str('%s="%s"' % (pkey, kw['params'][pkey])))
+        cmd = ""
+        for parambloc in params:
+            cmd = cmd + ' ' + parambloc
+        self.log.error(params)
+        call = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+        call.wait()
+        return { "stdout": call.stdout.read(), "params": params, "retcode": call.returncode}

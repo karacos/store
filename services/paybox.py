@@ -4,7 +4,7 @@ Created on 15 dec. 2011
 @author: nico
 '''
 import karacos
-import math
+import re, math
 class Service(karacos.apps['store'].providers.paybox.Service):
     
     def __init__(self,*args,**kw):
@@ -29,7 +29,7 @@ class Service(karacos.apps['store'].providers.paybox.Service):
         params['PBX_CMD'] = cart.id # Reference commande commercant
         params['PBX_DEVISE'] = "978" # default euro
         params['PBX_PORTEUR'] = email_porteur# email porteur de carte
-        params['PBX_RETOUR'] = "montant:M;maref:R;auto:A;trans:T;pmt:P;carte:C;idtrans:S;pays:Y;erreur:E;validite:D;PPPS:U;IP:I;BIN6:N;digest:H;datrans:W;htrans:Q;sign:K"
+        params['PBX_RETOUR'] = 'montant:M;maref:R;auto:A;trans:T;pmt:P;carte:C;idtrans:S;pays:Y;erreur:E;validite:D;PPPS:U;IP:I;BIN6:N;digest:H;datrans:W;htrans:Q;sign:K'
         # variable (voir p19)
         params['PBX_SOURCE'] = "XHTML"
         params['PBX_REPONDRE_A'] = "http://%s%s/pay_callback/%s/srvcallback" % (cart.__store__.__domain__['fqdn'],
@@ -45,6 +45,9 @@ class Service(karacos.apps['store'].providers.paybox.Service):
         params['PBX_ANNULE'] = "http://%s%s/pay_callback/%s/cancel" % (cart.__store__.__domain__['fqdn'],
                                                                    cart.__store__._get_action_url(),
                                                                    payment.id) # url de callback annullation paiement
+        params['PBX_ERREUR'] = "http://%s%s/pay_callback/%s/erreur" % (cart.__store__.__domain__['fqdn'],
+                                                                   cart.__store__._get_action_url(),
+                                                                   payment.id)
         # URL du serveur de paiement primaire de Paybox si
         #differente de celle par defaut :
         #version mobile :
@@ -53,12 +56,27 @@ class Service(karacos.apps['store'].providers.paybox.Service):
         params['PBX_BACKUP1'] = 'https://tpeweb1.paybox.com/cgi/ChoixPaiementMobile.cgi'
         params['PBX_BACKUP2'] = 'https://tpeweb2.paybox.com/cgi/ChoixPaiementMobile.cgi'
         params['PBX_BACKUP3'] = 'https://tpeweb3.paybox.com/cgi/ChoixPaiementMobile.cgi'
-        payment['service']['do_forward'] = {
-            "request": params,
-            "response": self.call(params=params)
-        }
+        payment['service']['do_forward'] =  self.call(params=params)
         payment.save()
-        pass
+        if payment['service']['do_forward']['retcode'] != 0:
+            for line in payment['service']['do_forward']['stdout'].splitlines():
+                url = re.match('<META HTTP-EQUIV="refresh" CONTENT="0;URL=(http://.*)">',line, 0)
+                if url != None:
+                    payment['service']['do_forward']['url_err'] = url.groups()[0]
+                    payment.save()
+                    return {"success": False, "data": {"id": payment.id, "errurl": payment['service']['do_forward']['url_err']}}
+            
+            #response = karacos.serving.get_response()
+            #response.headers['Content-Type'] = "text/html"
+            #response.body = payment['service']['do_forward']['stdout']
+            return
+        if payment['service']['do_forward']['stdout'].find("AUCUN SERVEUR DISPONIBLE") != -1:
+            return {"success": False, "message": "Serveur de paiement indisponible", "cancel": payment.do_cancel()}
+        if re.match("^[A-Z0-9]*$", payment['service']['do_forward']['stdout'], 0) == None:
+            return {"success": False, "message": "DataString invalid", "cancel": payment.do_cancel()}
+        params['PBX_DATA'] = payment['service']['do_forward']['stdout']
+        return {"success": True, "data":{"id": payment.id, "data": params }}
+        
 
     def do_callback(self,payment,action,*args,**kw):
         """
@@ -87,3 +105,7 @@ class Service(karacos.apps['store'].providers.paybox.Service):
                 return payment.do_validate()
             else:
                 return payment.do_cancel()
+        if action == 'erreur':
+            assert 'NUMERR' in kw
+            
+            return payment.do_cancel()          
