@@ -5,6 +5,31 @@ Created on 15 dec. 2011
 '''
 import karacos
 import re, math
+
+script_errors = {
+                "-1" : "Erreur de transmission",
+                "-2" : "Erreur memoire",
+                "-3" : "Erreur de lecture des parametres",
+                "-4" : "Erreur parametre trop long",
+                "-5" : "Erreur ouverture de fichier",
+                "-6" : "Erreur fichier incorrect",
+                "-7" : "Erreur information obligatoire manqualte",
+                "-8" : "Erreur texte dans donnee numerique",
+                "-9" : "Erreur CODE SITE non valide (len !=7)",
+                "-10": "Erreur CODE RANG non valide (len != 2)",
+                "-11": "Erreur len TOTAL > 11 ou < 3",
+                "-12": "Erreur len LAN/DEVISE != 3",
+                "-13": "Erreur CMD vide ou trop long",
+                "-14": "Erreur NA",
+                "-15": "Erreur NA",
+                "-16": "Erreur ADRESSE PORTEUR invalide",
+                "-17": "Erreur de coherence multi-paniers",
+                "-18": "Erreur faille XSS dans la page d'appel",
+                "-19": "Erreur non documente",
+                "-20": "Erreur carte cadeau",
+                "-21": "Erreur valeur variable > valeur max"
+            }
+
 class Service(karacos.apps['store'].providers.paybox.Service):
     
     def __init__(self,*args,**kw):
@@ -64,18 +89,13 @@ class Service(karacos.apps['store'].providers.paybox.Service):
                 if url != None:
                     payment['service']['do_forward']['url_err'] = url.groups()[0]
                     payment.save()
-                    return {"success": False, "data": {"id": payment.id, "errurl": payment['service']['do_forward']['url_err']}}
-            
-            #response = karacos.serving.get_response()
-            #response.headers['Content-Type'] = "text/html"
-            #response.body = payment['service']['do_forward']['stdout']
-            return
+                    return {"success": False, "data": {"service": "paybox", "id": payment.id, "errurl": payment['service']['do_forward']['url_err']}}
         if payment['service']['do_forward']['stdout'].find("AUCUN SERVEUR DISPONIBLE") != -1:
-            return {"success": False, "message": "Serveur de paiement indisponible", "cancel": payment.do_cancel()}
-        if re.match("^[A-Z0-9]*$", payment['service']['do_forward']['stdout'], 0) == None:
-            return {"success": False, "message": "DataString invalid", "cancel": payment.do_cancel()}
-        params['PBX_DATA'] = payment['service']['do_forward']['stdout']
-        return {"success": True, "data":{"id": payment.id, "data": params }}
+            return {"success": False, "message": "Serveur de paiement indisponible", "data":{"do_cancel": payment.do_cancel(),"id": payment.id,"service": "paybox"}}
+        if re.match("^[a-zA-Z0-9]*$", payment['service']['do_forward']['stdout'], 0) == None:
+            return {"success": False, "message": "DataString invalid", "data":{"do_cancel": payment.do_cancel(),"id": payment.id,"service": "paybox"}}
+        params['PBX_DATA'] = payment['service']['do_forward']['stdout'].splitlines()[0]
+        return {"success": True, "data":{"id": payment.id, "service": "paybox", "target_url": self.__conf__['target_url'], "method": "POST", "params": params}}
         
 
     def do_callback(self,payment,action,*args,**kw):
@@ -101,11 +121,15 @@ class Service(karacos.apps['store'].providers.paybox.Service):
         if action == 'accept':
             return payment.do_validate()
         if action == 'srvcallback':
+            # See spec p19
+            # TODO: strict imperative verifications
             if kw['erreur'] == '00000' and 'auto' in kw:
-                return payment.do_validate()
+                return ""#  - should return empty html
             else:
                 return payment.do_cancel()
         if action == 'erreur':
             assert 'NUMERR' in kw
             
-            return payment.do_cancel()          
+            payment['cancel_reason']= { 'message': script_errors[kw['NUMERR']], 'errCode': kw['NUMERR']}
+            payment.save()
+            return {'success': False, 'cancel': payment.do_cancel(), 'message': script_errors[kw['NUMERR']], 'errCode': kw['NUMERR']}          
