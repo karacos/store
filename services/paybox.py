@@ -89,7 +89,7 @@ class Service(karacos.apps['store'].providers.paybox.Service):
                 if url != None:
                     payment['service']['do_forward']['url_err'] = url.groups()[0]
                     payment.save()
-                    return {"success": False, "data": {"service": "paybox", "id": payment.id, "errurl": payment['service']['do_forward']['url_err']}}
+                    return {"success": False, "message": "Payment preparation failed", "data": {"service": "paybox", "id": payment.id, "errurl": payment['service']['do_forward']['url_err']}}
         if payment['service']['do_forward']['stdout'].find("AUCUN SERVEUR DISPONIBLE") != -1:
             return {"success": False, "message": "Serveur de paiement indisponible", "data":{"do_cancel": payment.do_cancel(),"id": payment.id,"service": "paybox"}}
         if re.match("^[a-zA-Z0-9]*$", payment['service']['do_forward']['stdout'], 0) == None:
