@@ -69,14 +69,14 @@ define('store/backOffice', ['jquery','store/Store', 'karacos'],
 									.append(data);
 							},
 							failure: function() {
-								alert('error');
+								karacos.ui.alert('error');
 							}
 						});
 						
 					},
 					error: function(data) {
 						console.log(data);
-						alert('error');
+						karacos.ui.alert('error');
 					}
 				}); // post
 			});
@@ -102,7 +102,7 @@ define('store/backOffice', ['jquery','store/Store', 'karacos'],
 					async: false,
 					params: params,
 					callback: function(data) {
-						karacos.alert(data.message);
+						karacos.ui.alert(data.message);
 					}
 				});
 				return false;
@@ -147,9 +147,9 @@ define('store/backOffice', ['jquery','store/Store', 'karacos'],
 					karacos.button($kcbtn,
 							function(result){
 						if (typeof result.error !== "undefined") {
-							karacos.alert(result.error.message,[{'label': 'Ok'}]);
+							karacos.ui.alert(result.error.message,[{'label': 'Ok'}]);
 						} else {
-							karacos.alert(result.message,[{'label': 'Ok'}]);
+							karacos.ui.alert(result.message,[{'label': 'Ok'}]);
 							refreshCartsUI();
 						}
 					});

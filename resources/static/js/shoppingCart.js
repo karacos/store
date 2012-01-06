@@ -1,5 +1,6 @@
-define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
-	function($,store, karacos) {
+define('store/shoppingCart',
+		['jquery','store/Store', 'karacos','store/handler.Store.pay_cart'],
+	function($,store, karacos, handlersRegistry) {
 		// main function
 		function ShoppingCart() {
 			/**
@@ -259,13 +260,14 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 				 * Shows the shopping cart
 				 */
 				show: function() {
-					var cart = this;
+					var cart = this,
+						store = KaraCos.Store;
 					cart.win.empty().dialog({width: '600px',modal:true}).show();
 					KaraCos.getForm({
 						url:KaraCos.Store.store_url,
 						form:'get_shopping_cart',
 						noparams: function(data) {
-							$.ajax({ url: "/fragment/get_shopping_cart.jst",
+							$.ajax({ url: "/fragment/get_shopping_cart.jst?store_id=" + store.id + "&base_id=" + store.base_id,
 								context: document.body,
 								type: "GET",
 								cache: false,
@@ -274,7 +276,7 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 									cart.template = jsontemplate.Template(form, KaraCos.jst_options);
 									cart.data = data;
 									cart.process_render();
-									cart.check_state();
+									//cart.check_state();
 								}
 							});
 						}
@@ -371,12 +373,16 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 						cart.paymentWaiting = cart.find("#paymentWaiting");
 					}
 					KaraCos.button(cart.find('.pay_button'),function(data){
-						if (data.success) {
-							document.location = data.data.url;
-						} else {
-							cart.paymentWaiting.empty()
-								.append("<p>Erreur pendant la transaction, votre panier est annulé</p>");
-						}
+							handlersRegistry.returnHandlers['pay_cart'](data, null,
+									function(data) {
+								
+							});
+//						if (data.success) {
+//							document.location = data.data.url;
+//						} else {
+//							cart.paymentWaiting.empty()
+//								.append("<p>Erreur pendant la transaction, votre panier est annulé</p>");
+//						}
 					});
 					
 					cart.find('.pay_button').click(function paymentWaiting(event){
@@ -441,13 +447,18 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 				 * Check cart state
 				 */
 				check_state: function() {
-					var cart = this;
-					
+					var cart = this,
+						validation_message = $("#validation_message");
+					if (validation_message.length === 0) {
+						validation_message = $('<div id="validation_message"></div>');
+						$('body').append(validation_message);
+					}
 					KaraCos.action({url: store.store_url,
 						params: {},
 						method: 'validate_cart',
 						async:true,
 						callback: function(data) {
+							
 							if (data.success) {
 								// cart contains all required info, pay button activated
 								cart.find(".pay_button").show()
@@ -457,10 +468,24 @@ define('store/shoppingCart', ['jquery','store/Store', 'karacos'],
 								});
 							} else {
 								cart.find(".pay_button").hide();
+								
 							}
 						},
-						error: function() {
+						error: function(data) {
 							cart.find(".pay_button").hide();
+							if (data.type) {
+								if (data.type === "cpic_accept") {
+									validation_message.empty()
+										.append('Vous devez accepter les conditions générales du contributeur');
+									validation_message.dialog({modal: true});
+								}
+							} else {
+								if (data.message) {
+									validation_message.empty()
+										.append(data.message);
+									validation_message.dialog({modal: true});
+								}
+							}
 						}
 					});
 				}

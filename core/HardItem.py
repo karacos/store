@@ -123,7 +123,7 @@ class HardItem(karacos.db['StoreItem']):
         such an item requires shipping adress
         """
         if 'shipping_adr' not in cart:
-            raise karacos.http.DataRequired("Validate shipping","","/%s?method=validate_cart"%self.__store__.get_relative_uri(),self.__store__,self.__store__.add_cart_shipping)
+            return (False, "shipping")
         # Number of this item odered
         #cart_number = cart['items'][self.id]
         #self.__bo_node__._reserve_item(self, cart)

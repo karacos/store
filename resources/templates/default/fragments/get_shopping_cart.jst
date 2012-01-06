@@ -1,3 +1,11 @@
+<%
+import karacos
+import sys, traceback
+request = karacos.serving.get_request()
+session = karacos.serving.get_session() %>
+% if 'store_id' in request.str_params and 'base_id' in request.str_params:
+	<% store = karacos.base.db[request.str_params['base_id']].db[request.str_params['store_id']] %>
+% try:
 <div id="shopping_cart_grid">
 {.section data}
 	<div class="cart_adr_panel">
@@ -85,11 +93,21 @@
             <tr><td colspan="4" style="text-align:right">Total TTC</td><td class="store_cart_total_ttc">{cart_total}</td></tr>
          </tbody>
         </table>
-        <div class="pay_button" typeof="karacos:method"
-        about="urn:uuid:k-meche_store_paypal_button:pay_cart" style="display:none;">
-         <div style="display:none;" property="url">{store_url}</div>
-         <div style="display:none;" property="service">paypal_express</div>
-         <img src="/_server/k-meche/images/EC-button.gif"/></div>
+        <% services = store._get_services() %>
+        % if 'paypay_express' in services['message']: 
+	        <div class="pay_button" typeof="karacos:method"
+	        about="urn:uuid:k-meche_store_paypal_button:pay_cart" style="display:none;">
+	         <div style="display:none;" property="url">{store_url}</div>
+	         <div style="display:none;" property="service">paypal_express</div>
+	         <img src="/_server/k-meche/images/EC-button.gif"/></div>
+	     %endif
+	     % if 'paybox' in services['message']: 
+	         <div class="pay_button" typeof="karacos:method"
+	        about="urn:uuid:k-meche_store_paybox_button:pay_cart" style="display:none;">
+	         <div style="display:none;" property="url">{store_url}</div>
+	         <div style="display:none;" property="service">paybox</div>
+	         <img src="/_server/k-meche/images/CB.png"/></div>
+         % endif
     {.or}
       <p><em>(No items found)</em></p>
     {.end}
@@ -97,3 +115,17 @@
   <p><em>(No shopping cart)</em></p>
 {.end}
 </div>
+%except:
+some errors :
+	<pre>
+		${sys.exc_info()}
+		---
+		%for line in traceback.format_exc().splitlines():
+			${line}
+		%endfor
+	</pre>
+% endtry
+%else:
+	Wrong call, missing parameters
+	
+%endif

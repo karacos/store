@@ -214,14 +214,17 @@ class ShoppingCart(karacos.db['Node']):
             # raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
             #                                backlink = "/%s/validate_cart"%self.__store__.get_relative_uri(),
             #                                message = "Validate billing")
+        result = None   
         for item_key in self['items'].keys() :
             try:
-                self.db[item_key]._do_cart_validation(self)
+                # TODO redefine _do_cart_validation signature and imns
+                result = self.db[item_key]._do_cart_validation(self)
             except:
-                return (False, 'shipping')
-        self['validated'] = True
-        self.save()
-        return (True, 'none')
+                return (False, 'unknown')
+        if result[0]:
+            self['validated'] = True
+            self.save()
+        return result
     
     def _add_shipping_adress_(self,adress):
         ""

@@ -12,7 +12,7 @@ define("store/handler.Store.pay_dummy_cart",
 			if (typeof data.data === "object") {
 				if (typeof data.data.service === "string") {
 					if (typeof service_handlers[data.data.service] === "function") {
-						service_handlers[data.data.service](data);
+						service_handlers[data.data.service](data, callback);
 					}
 				}
 			}
