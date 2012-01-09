@@ -135,3 +135,7 @@ div#Shopping_cart div.billing_adr_panel {
 	width: 14em;
 	height: 8em;
 }
+
+div#Shopping_cart div.pay_button {
+	float: left;
+}

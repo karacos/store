@@ -457,28 +457,32 @@ define('store/shoppingCart',
 						params: {},
 						method: 'validate_cart',
 						async:true,
-						callback: function(data) {
-							
-							if (data.success) {
-								// cart contains all required info, pay button activated
-								cart.find(".pay_button").show()
-								.click(function(event){
-									event.stopImmediatePropagation();
-									event.preventDefault();
-								});
+						callback: function(validateResult) {
+							var cbfunc = function(data){
+								if (data.success) {
+									// cart contains all required info, pay button activated
+									cart.find(".pay_button").show()
+									.click(function(event){
+										event.stopImmediatePropagation();
+										event.preventDefault();
+									});
+								} else {
+									cart.find(".pay_button").hide();
+								}
+							};
+							if (handlersRegistry.returnHandlers['validate_cart'] !== undefined) {
+								handlersRegistry.returnHandlers['validate_cart'](validateResult,undefined,cbfunc);
 							} else {
-								cart.find(".pay_button").hide();
-								
+								cbfunc(validateResult);
 							}
+							
 						},
 						error: function(data) {
 							cart.find(".pay_button").hide();
-							if (data.type) {
-								if (data.type === "cpic_accept") {
-									validation_message.empty()
-										.append('Vous devez accepter les conditions générales du contributeur');
-									validation_message.dialog({modal: true});
-								}
+							if (handlersRegistry.returnHandlers['validate_cart'] !== undefined) {
+								handlersRegistry.returnHandlers['validate_cart'](data, undefined, function(){
+									cart.check_state();
+								});
 							} else {
 								if (data.message) {
 									validation_message.empty()
