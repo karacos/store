@@ -500,7 +500,9 @@ class Store(karacos.db['StoreParent']):
             if not self.__domain__.is_user_authenticated():
                 return {'success': False, 'error':'User should be authenticated'}
     #            raise karacos.http.WebAuthRequired(self.__domain__,
-    #                                               backlink="/%s/validate_cart"%self.get_relative_uri())
+    #                                    backlink="/%s/validate_cart"%self.get_relative_uri())
+            if cart.get_customer_email() == None:
+                return {'message':"cart not validated, no valid email found", 'type': 'email', 'success':False}
             user = self.__domain__.get_user_auth()
             if user.id != cart['customer_id']:
                 assert 'anonymous.%s' % session.id == cart['customer_id'], _("Shopping cart verification failure")

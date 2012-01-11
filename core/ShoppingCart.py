@@ -124,7 +124,7 @@ class ShoppingCart(karacos.db['Node']):
         if 'cart_array' not in self:
             self['cart_array'] = []
             self.save()
-        result = {'items': self['cart_array'], 'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0}
+        result = {'items': self['cart_array'], 'cart_total':0, 'cart_net_total':0, 'cart_tax_total':0, 'cart_total_weight': 0, 'customer_email': self.get_customer_email()}
         for item in self['cart_array']:
             try:
                 result['cart_total'] = "%.2f" % (float(result['cart_total']) + float(item['total']))
@@ -239,8 +239,14 @@ class ShoppingCart(karacos.db['Node']):
         """
     
     def get_customer_email(self):
-        """ TODO: implement method """
-        pass
+        """ Retrieve customer's email, none otherwise """
+        try:
+            if 'contact_mail' not in self:
+                self['contact_mail'] = self.db[self['customer_id']]._get_email()
+                self.save()
+            return self['contact_mail']
+        except:
+            return None
     
     def set_customer_email(self,email):
         self['contact_mail'] = email
@@ -310,6 +316,7 @@ class ShoppingCart(karacos.db['Node']):
         
     
     def _do_payment_cancelled(self,payment):
+        self._do_cart_cancel()
         self['is_open'] = 'true'
         self['status'] = 'payment_ko'
         self.save()

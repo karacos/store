@@ -287,7 +287,9 @@ define('store/shoppingCart',
 				 * Process rendering and event bindings
 				 */
 				process_render: function() {
-					var cart = this;
+					var 
+						cart = this,
+						pay_button;
 					/**
 					 * If user email is not set, ask user for it
 					 * @param callback
@@ -369,23 +371,16 @@ define('store/shoppingCart',
 					cart.paymentWaiting = cart.find("#paymentWaiting");
 					if (cart.paymentWaiting.length === 0) {
 						// TODO: l10n
-						cart.win.append('<div style="display:none" id="paymentWaiting"></div>');
-						cart.paymentWaiting = cart.find("#paymentWaiting");
+						cart.paymentWaiting = $('<div style="display:none" id="paymentWaiting"></div>');
+						cart.win.append(cart.paymentWaiting);
 					}
-					KaraCos.button(cart.find('.pay_button'),function(data){
-							handlersRegistry.returnHandlers['pay_cart'](data, null,
-									function(data) {
-								
-							});
-//						if (data.success) {
-//							document.location = data.data.url;
-//						} else {
-//							cart.paymentWaiting.empty()
-//								.append("<p>Erreur pendant la transaction, votre panier est annulé</p>");
-//						}
-					});
-					
-					cart.find('.pay_button').click(function paymentWaiting(event){
+					cart.find('.pay_button img').click(function(event){
+						var 
+							$this = $(this).parent(),
+							model = VIE.ContainerManager.getInstanceForContainer($this),
+							result;
+						event.stopImmediatePropagation();
+						event.preventDefault();
 						cart.paymentWaiting
 							.empty()
 							.append('<p>Vous allez etre redirrigés vers le prestataire de paiement</p>')
@@ -393,6 +388,19 @@ define('store/shoppingCart',
 								modal: true
 							})
 							.show();
+						result = Backbone.sync('process',model);
+						handlersRegistry.returnHandlers['pay_cart'](result, null,
+								function(data) {
+							if (data.success) {
+								document.location = data.data.url;
+							} else {
+								cart.paymentWaiting.empty()
+									.append("<p>Erreur pendant la transaction, votre panier est annulé</p>");
+								if (typeof data.message === "string") {
+									cart.paymentWaiting.append("<p>" + data.message + "</p>");
+								}
+							}
+						});
 					});
 				},
 				/**
