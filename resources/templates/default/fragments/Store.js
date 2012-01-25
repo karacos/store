@@ -9,8 +9,8 @@
 		store = KaraCos.Store;
 		if (typeof store.show_page === "undefined"){
 			store.show_page = function(count,page){
-				$($("#store_page_nav_header li").get(page)).addClass('ui-state-over');
 				var store = this;
+				$($("#store_page_nav_header li").get(page)).addClass('ui-state-over');
 				console.log("Running show_page");
 				store.page = {};
 				try {

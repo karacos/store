@@ -166,21 +166,23 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 				} catch(e) {
 					console.log(e);
 				}
-				$("#store_page_nav_header li").button().click(
-						function(event){
-							event.stopImmediatePropagation();
-							event.preventDefault();
-							var $this = $(this), url;
-							url = $this.find('a').attr("href");
-							History.pushState(null, null, url);
-							$.ajax({
-								url: url,
-								headers: {'Karacos-Fragment': 'true'},
-								success: function(data) {
-									$('#MainContent').empty().append(data);
-								}
+				$('body').bind('kcui', function(){
+					$("#store_page_nav_header li").button({}).click(
+							function(event){
+								event.stopImmediatePropagation();
+								event.preventDefault();
+								var $this = $(this), url;
+								url = $this.find('a').attr("href");
+								History.pushState(null, null, url);
+								$.ajax({
+									url: url,
+									headers: {'Karacos-Fragment': 'true'},
+									success: function(data) {
+										$('#MainContent').empty().append(data);
+									}
+								});
 							});
-						});
+				});
 					
 			} // function store.sow_page
 	};
