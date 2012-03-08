@@ -16,7 +16,7 @@
 
 % if instance != None:
 <% node_actions = instance._get_actions() %>
-(function(submenu){
+(function storeItemMenu(submenu){
 	var 
 		karacos = KaraCos,
 		item, subsubmenu,
