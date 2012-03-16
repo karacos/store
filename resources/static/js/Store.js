@@ -1,6 +1,7 @@
-define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], function($){
+define('store/Store',
+	['jquery'], function($){
 	var 
-		karacos = KaraCos,
+		karacos,
 		store = {
 			/**
 			 * 
@@ -186,13 +187,16 @@ define('store/Store',['jquery','karacos/main','karacos/core/jquery.promise'], fu
 					
 			} // function store.sow_page
 	};
-	$('body').createPromiseEvent('kcstore');
-	$('body').createPromiseEvent('kcstoreloaded');
-	console.log('Starting store Initialization');
-	//TODO: remove later
-	// Setting a global (compatibility issue)
-	karacos.Store = store;
-	$('body').trigger('kcstoreloaded', [store]);
+	$('body').bind('kcready', function(){
+		$('body').createPromiseEvent('kcstore');
+		$('body').createPromiseEvent('kcstoreloaded');
+		console.log('Starting store Initialization');
+		karacos = KaraCos;
+		//TODO: remove later
+		// Setting a global (compatibility issue)
+		karacos.Store = store;
+		$('body').trigger('kcstoreloaded', [store]);
+	})
 	// If payment_validation
 	if (window.kc_method_result !== false) {
 		if (typeof window.kc_method_result.datatype !== "undefined") {
