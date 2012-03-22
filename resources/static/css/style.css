@@ -103,12 +103,13 @@
 #kc_existing_adresses div.adr_display_box div.adr_display_label {
 	background-color: #C0C0C0;
 	}
+	
 div#Shopping_cart div.shipping_adr_panel {
 	border: 1px solid black;
 	float:left;
 	padding: 2px;
 	font-size: 0.75em;
-	width: 14em;
+	width: 43%;
 	height: 8em;
 }
 div.missing_adress {
@@ -132,7 +133,7 @@ div#Shopping_cart div.billing_adr_panel {
 	float: right;
 	padding: 2px;
 	font-size: 0.75em;
-	width: 14em;
+	width: 43%;
 	height: 8em;
 }
 
