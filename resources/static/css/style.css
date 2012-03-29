@@ -23,7 +23,10 @@
     margin: 0; padding:2px;
     text-align: right;
 }
-
+.add_to_cart_panel {
+	float: left;
+	position: relative;
+	}
 .modify_in_cart_control {
 	width: 3em;
 	float: right;
