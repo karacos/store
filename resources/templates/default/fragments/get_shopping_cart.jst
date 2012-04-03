@@ -93,16 +93,16 @@ session = karacos.serving.get_session() %>
             <tr><td colspan="4" style="text-align:right">Total TTC</td><td class="store_cart_total_ttc">{cart_total}</td></tr>
          </tbody>
         </table>
-        <% services = store._get_services() %>
-        % if 'paypay_express' in services['message']: 
+        <% services = store.__get_services__() %>
+        % if 'paypay_express' in services: 
 	        <div class="pay_button" typeof="karacos:method"
 	        about="urn:uuid:k-meche_store_paypal_button:pay_cart" style="display:none;">
 	         <div style="display:none;" property="url">{store_url}</div>
 	         <div style="display:none;" property="service">paypal_express</div>
 	         <img src="/_server/k-meche/images/EC-button.gif"/></div>
 	     %endif
-	     % if 'paybox' in services['message']: 
-	         <div class="pay_button" typeof="karacos:method"
+	     % if 'paybox' in services: 
+	        <div class="pay_button" typeof="karacos:method"
 	        about="urn:uuid:k-meche_store_paybox_button:pay_cart" style="display:none;">
 	         <div style="display:none;" property="url">{store_url}</div>
 	         <div style="display:none;" property="service">paybox</div>

@@ -124,6 +124,8 @@ class HardItem(karacos.db['StoreItem']):
         """
         if 'shipping_adr' not in cart:
             return (False, "shipping")
+        else:
+            return (True,"valid")
         # Number of this item odered
         #cart_number = cart['items'][self.id]
         #self.__bo_node__._reserve_item(self, cart)
