@@ -498,6 +498,34 @@ define('store/shoppingCart',
 									if (data.message) {
 										validation_message.empty()
 											.append(data.message);
+										if (data.type === "email") {
+											validation_message.append('<div> \
+														<div>Please enter a valid email</div> \
+														<div><input type="text" name="email"/>\
+														<button>update Email</button></div>\
+													</div>');
+											validation_message.find("button").button().click(function(e){
+												e.stopImmediatePropagation();
+												e.preventDefault();
+												karacos.action({
+													url: '/',
+													method: "set_user_email",
+													params: {"email": validation_message.find("input").val()},
+													async: true,
+													callback: function(setEmailResult) {
+														if (setEmailResult.success) {
+															validation_message.dialog('destroy');
+														}
+													},
+													error: function(setEmailError) {
+														if (validation_message.find(".error").length === 0) {
+															validation_message.append('<div class="error">Invalid email format</div>');
+														}
+													}
+												});
+												;
+											});
+										}
 										validation_message.dialog({modal: true});
 									}
 								}
