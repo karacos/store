@@ -56,7 +56,7 @@ class StoreParent(karacos.db['WebNode']):
     
     @karacos._db.isaction
     def create_store_folder(self,*args,**kw):
-        return self._create_child_node(data=kw,type='StoreFolder')
+        return {"success": True, "data":self._create_child_node(data=kw,type='StoreFolder')}
     
     create_store_folder.form = {'title': _("Creer un dossier"),
          'submit': _('Creer'),
@@ -68,7 +68,7 @@ class StoreParent(karacos.db['WebNode']):
     def __get_store_folders_by_id__(self,*args,**kw):
         """
         function(doc) {
-        var label, auth;
+        var label, auth, docout;
             if (doc.parent_id === "%s" && doc.WebType === "StoreFolder" && !("_deleted" in doc && doc._deleted == true)) {
                 for (auth in doc.ACL) {
                     if (doc.ACL[auth].join().search(/w_browse/) != -1) {
@@ -77,7 +77,8 @@ class StoreParent(karacos.db['WebNode']):
                         } else {
                             label = doc.name;
                         }
-                        emit(auth,{name: doc.name, label: label});
+                        docout = {name: doc.name, label: label};
+                        emit(auth,docout);
                     }
                 }
             }
@@ -88,7 +89,7 @@ class StoreParent(karacos.db['WebNode']):
         """
         """
         user = self.__domain__.get_user_auth()
-        cart = self.get_open_cart_for_user()
+        #cart = self.__store__.get_open_cart_for_user()
         keys = [] + user['groups']
         keys.append("user.%s" % user['name'])
         results = self.__get_store_folders_by_id__(*(), **{'keys':keys})
@@ -108,6 +109,57 @@ class StoreParent(karacos.db['WebNode']):
     @karacos._db.isaction
     def get_store_folders(self):
         return self._get_store_folders_by_id_()
+    
+    @karacos._db.ViewsProcessor.isview('self', 'javascript')
+    def __get_subfolders__(self,*args,**kw):
+        """
+        function(doc) {
+        var label, auth, docout;
+            if (doc.parent_id === "%s" && doc.WebType === "StoreFolder" && !("_deleted" in doc && doc._deleted == true)) {
+                for (auth in doc.ACL) {
+                    if (doc.ACL[auth].join().search(/w_browse/) != -1) {
+                        if (doc.label) {
+                            label = doc.label;
+                        } else {
+                            label = doc.name;
+                        }
+                        emit(auth,doc);
+                    }
+                }
+            }
+        }
+        """
+    def _get_subfolders_(self):
+        """
+        """
+        user = self.__domain__.get_user_auth()
+        keys = [] + user['groups']
+        keys.append("user.%s" % user['name'])
+        results = self.__get_subfolders__(*(), **{'keys':keys})
+        result = {'success': True, 
+                      'status': 'success',
+                      'data': [],
+                      'total': 0
+                      }
+        ids = []
+        for item in results:
+            if item.id not in ids:
+                image = ""
+                if 'main_pic' in item.value:
+                    image = "/_atts/%s/%s" % (item.id,item.value['main_pic'])
+                elif 'k_atts' in item.value:
+                    for file in item.value['k_atts']:
+                        if item.value['k_atts'][file]['type'].startswith('image') and image == '':
+                            image = "/_atts/%s/%s" % (item.id,file)
+                result['data'].append({'id': item.id,
+                                       'name': item.value['name'],
+                                       'image': image,
+                                       'title': item.value['title']
+                                       })
+                ids.append(item.id)
+        result['total'] = len(result['data'])
+        return result
+    
     
     @karacos._db.isaction
     def create_storeitem(self,*args,**kw):
