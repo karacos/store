@@ -395,6 +395,7 @@ define('store/shoppingCart',
 							handlersRegistry.returnHandlers['pay_cart'](result, null,
 									function(data) {
 								if (data.success) {
+									
 									document.location = data.data.url;
 								} else {
 									cart.paymentWaiting.empty()
@@ -514,7 +515,17 @@ define('store/shoppingCart',
 													async: true,
 													callback: function(setEmailResult) {
 														if (setEmailResult.success) {
-															validation_message.dialog('destroy');
+															karacos.action({
+																url:"", //store url
+																method: "add_cart_customer_email",
+																params: {"email":validation_message.find("input").val()},
+																callback: function(setCartEmail) {
+																	if (setCartEmail.success) {
+																		validation_message.dialog('destroy');
+																		cart.check_state();
+																	}
+																}
+															});
 														}
 													},
 													error: function(setEmailError) {

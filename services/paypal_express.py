@@ -69,7 +69,7 @@ class Service(karacos.apps['store'].providers.paypal.Service):
         redirect_url = "%s%s&PAYMENTREQUEST_0_AMT=%s&PAYMENTREQUEST_0_CURRENCYCODE=EUR" % (self.__conf__['PAYPAL_URL'],
                                  payment['service']['SetExpressCheckout']['response']['TOKEN'][0],
                                   bill['total'])
-        return {'success': True, 'data' :{"id": payment.id,'url': redirect_url}}
+        return {'success': True, 'data' :{"id": payment.id,"service": "paypal_express",'url': redirect_url}}
 
         
         

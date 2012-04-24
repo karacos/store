@@ -56,7 +56,7 @@ class Store(karacos.db['StoreParent']):
         return self.__customers_group__ 
 
     @karacos._db.isaction
-    def add_cart_customer_email(self, email):
+    def add_cart_customer_email(self, email=None):
         cart = self.get_open_cart_for_user()
         return cart.set_customer_email(email)
 
@@ -104,6 +104,9 @@ class Store(karacos.db['StoreParent']):
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_shopping_cart")
         if 'get_store_items_list' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
             self['ACL']['group.everyone@%s' % self.__domain__['name']].append("get_store_items_list")
+        if 'add_cart_customer_email' not in self['ACL']['group.everyone@%s' % self.__domain__['name']]:
+            self['ACL']['group.everyone@%s' % self.__domain__['name']].append("add_cart_customer_email")
+        
         
         custgrpname = 'group.customers@%s' % self.__domain__['name']
         if custgrpname not in self['ACL']:

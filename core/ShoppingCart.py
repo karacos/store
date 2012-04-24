@@ -120,7 +120,7 @@ class ShoppingCart(karacos.db['Node']):
         """
     
     def _get_cart_array(self):
-
+        self._update_item()
         if 'cart_array' not in self:
             self['cart_array'] = []
             self.save()
