@@ -40,9 +40,11 @@ define("store/handler.pay.Services",
 					}
 				}
 			}
+			/*
 			if (typeof callback === "function") {
 				callback(data);
 			}
+			*/
 		}
 	}
 });

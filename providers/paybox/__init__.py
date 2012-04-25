@@ -61,7 +61,9 @@ class Service(dict):
         cmd = ""
         for parambloc in params:
             cmd = cmd + ' ' + parambloc
-        self.log.error(params)
+        self.log.warn(params)
         call = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
         call.wait()
-        return { "stdout": call.stdout.read(), "params": params, "retcode": call.returncode}
+        result = { "stdout": call.stdout.read(), "params": params, "retcode": call.returncode}
+        self.log.warn(result)
+        return result
