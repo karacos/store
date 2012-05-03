@@ -83,9 +83,15 @@ define('store/Store',
 			 * 
 			 */
 			activate_item_cart_buttons: function(selector,callback) {
-				var selected = $('body');
+				var selected;
 				if (typeof selector !== "undefined") {
-					selected = $(selector);
+					if (typeof selector === "string") {
+						selected = $(selector);
+					} else {
+						selected = selector;
+					}
+				} else {
+					selected=$("body");
 				}
 				try {
 					selected.find('.inc_number').button({
@@ -114,7 +120,9 @@ define('store/Store',
 							kcmethod = $(this).closest("[about]");
 							item_cart = kcmethod.find('.item_cart_number');
 							number = Number(item_cart.text());
-							number -= 1;
+							if (number > 0) {
+								number -= 1;
+							}
 							item_cart.empty().append(number);
 							m = VIE.ContainerManager.getInstanceForContainer(kcmethod);
 							Backbone.sync('_update',m);
