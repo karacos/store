@@ -93,6 +93,16 @@ define('store/Store',
 				} else {
 					selected=$("body");
 				}
+				KaraCos.getForm({
+					url:KaraCos.Store.store_url,
+					form:'get_shopping_cart',
+					noparams: function(data) {
+						$.each(data.data.items, function(i,e) {
+							selected.find('[about="urn:uuid:'+ e.id +':set_number_item"] .item_cart_number').empty().append(e.number);
+							
+						});
+					}
+				});
 				try {
 					selected.find('.inc_number').button({
 						icons: {primary: "ui-icon-carat-1-n"}, 

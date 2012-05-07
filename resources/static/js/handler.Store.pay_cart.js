@@ -13,8 +13,14 @@ define("store/handler.Store.pay_cart",
 				if (typeof data.data.service === "string") {
 					if (typeof service_handlers[data.data.service] === "function") {
 						service_handlers[data.data.service](data, callback);
+					} else {
+						callback(data);
 					}
+				} else {
+					callback(data);
 				}
+			} else {
+				callback(data);
 			}
 		};
 		return handlersRegistry;

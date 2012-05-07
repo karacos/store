@@ -30,6 +30,60 @@ define('store/shoppingCart',
 						return this.win.find(selector);
 					},
 					/**
+					 * If user email is not set, ask user for it
+					 * @param callback
+					 */
+					verify_email: function(callback) {
+						
+						if (KaraCos.authManager.user_actions_forms.email === null) {
+							$.ajax({
+								url:"/fragment/set_user_email.jst",
+								context: document.body,
+								type: "GET",
+								cache: false,
+								async: true,
+								success: function(data){
+	//						var emailtemplate = jsontemplate.Template(data, KaraCos.jst_options);
+									store.emailwin = $("#set_email_window");
+									if (store.emailwin.length === 0) {
+										$('body').append('<div id="set_email_window"/>');
+										store.emailwin = $("#set_email_window");
+									} // emailwin
+									store.emailwin.empty().append(data);
+									store.emailwin.dialog({width: '80%',modal:true}).show();
+									store.emailwin.find('.form_set_email_button')
+									.button().click(function(event){
+										var $this = $(this), params = {}, method = 'set_user_email';
+										$.each($this.closest('form').serializeArray(), function(i, field) {
+											if (field.name === "method") {
+												method = field.value;
+											} else {
+												params[field.name] = field.value;
+											}
+										}); // each
+										KaraCos.action({ url: '/',
+											method: method,
+											async: false,
+											params: params,
+											callback: function(data) {
+												if (data.success) {
+													KaraCos.authManager.user_actions_forms.email = params['email'];
+													store.emailwin.dialog('close');
+													callback();
+												}
+											},
+											error: function(data) {
+												
+											}
+										}); // POST login form
+									});
+								}
+							});
+						} else {
+							callback();
+						}
+					},
+					/**
 					 * Add an adress to shopping cart adrtype of :
 					 * "billing" // adds a billing adress
 					 * "shipping" // adds a shipping adress
@@ -152,12 +206,12 @@ define('store/shoppingCart',
 						}); // each
 						if (method === 'add_cart_shipping') {
 							this.process_set_shipping_adr(form,store,params);
-							store.cart.data.data.shipping_adr = params.label;
+							store.cart.data.data.shipping = params.label;
 							
 						}
 						if (method === 'add_cart_billing') {
 							this.process_set_billing_adr(form,store,params);
-							store.cart.data.data.billing_adr = params.label;
+							store.cart.data.data.billing = params.label;
 						}
 						
 					},
@@ -171,7 +225,7 @@ define('store/shoppingCart',
 							async: false,
 							params: params,
 							callback: function(data) {
-								store.cart.billing_adr = data.data;
+								store.cart.data.data.billing_adr = data.data;
 								$.ajax({ url: "/fragment/adr_show_cart.jst",
 									context: document.body,
 									type: "GET",
@@ -179,9 +233,10 @@ define('store/shoppingCart',
 									async: true,
 									success: function(data) {
 										var adrtemplate = jsontemplate.Template(data, KaraCos.jst_options);
-										store.cart.billing_adr.label = "Adresse de facturation"; 
+										store.cart.data.data.billing_adr.label = "Adresse de facturation"; 
 										store.cart.find('.billing_adr_panel').empty()
-										.append(adrtemplate.expand(store.cart.billing_adr));
+										.append(adrtemplate.expand(store.cart.data.data.billing_adr));
+										cart.check_state();
 									}
 								});
 								store.adrwin.dialog("close");
@@ -224,11 +279,11 @@ define('store/shoppingCart',
 							callback: function(data) {
 								var total_ht, total_ttc;
 								if (data.success) {
-									store.cart.shipping_adr = data.data.adress;
+									store.cart.data.data.shipping_adr = data.data.adress;
 									cart.data.data.cart_total = Number(Number(cart.data.data.cart_total) + Number(data.data.shipping)).toFixed(2).toString();
 									cart.data.data.cart_net_total = Number(Number(cart.data.data.cart_net_total) + Number(data.data.shipping)).toFixed(2).toString();
 									cart.data.data.shipping = data.data.shipping;
-									cart.process_render();						
+									//cart.process_render();						
 									$.ajax({ url: "/fragment/adr_show_cart.jst",
 										context: document.body,
 										type: "GET",
@@ -236,9 +291,9 @@ define('store/shoppingCart',
 										async: true,
 										success: function(data) {
 											var adrtemplate = jsontemplate.Template(data, KaraCos.jst_options);
-											store.cart.shipping_adr.label = "Adresse de livraison"; 
+											store.cart.data.data.shipping_adr.label = "Adresse de livraison"; 
 											store.cart.find('.shipping_adr_panel').empty()
-											.append(adrtemplate.expand(store.cart.shipping_adr));
+											.append(adrtemplate.expand(store.cart.data.data.shipping_adr));
 										}
 									});
 									cart.check_state();
@@ -293,73 +348,20 @@ define('store/shoppingCart',
 						var 
 							cart = this,
 							pay_button;
-						/**
-						 * If user email is not set, ask user for it
-						 * @param callback
-						 */
-						function verify_email(callback) {
-							
-							if (KaraCos.authManager.user_actions_forms.email === null) {
-								$.ajax({
-									url:"/fragment/set_user_email.jst",
-									context: document.body,
-									type: "GET",
-									cache: false,
-									async: true,
-									success: function(data){
-		//						var emailtemplate = jsontemplate.Template(data, KaraCos.jst_options);
-										store.emailwin = $("#set_email_window");
-										if (store.emailwin.length === 0) {
-											$('body').append('<div id="set_email_window"/>');
-											store.emailwin = $("#set_email_window");
-										} // emailwin
-										store.emailwin.empty().append(data);
-										store.emailwin.dialog({width: '80%',modal:true}).show();
-										store.emailwin.find('.form_set_email_button')
-										.button().click(function(event){
-											var $this = $(this), params = {}, method = 'set_user_email';
-											$.each($this.closest('form').serializeArray(), function(i, field) {
-												if (field.name === "method") {
-													method = field.value;
-												} else {
-													params[field.name] = field.value;
-												}
-											}); // each
-											KaraCos.action({ url: '/',
-												method: method,
-												async: false,
-												params: params,
-												callback: function(data) {
-													if (data.success) {
-														KaraCos.authManager.user_actions_forms.email = params['email'];
-														store.emailwin.dialog('close');
-														callback();
-													}
-												},
-												error: function(data) {
-													
-												}
-											}); // POST login form
-										});
-									}
-								});
-							} else {
-								callback();
-							}
-						}
+						
 						
 						cart.win.empty().append(cart.template.expand(cart.data));
 						
 						cart.find('.set_shipping_button').click(function(){
 							KaraCos.authManager.provideLoginUI(function(){
-								verify_email(function(){
+								cart.verify_email(function(){
 									KaraCos.Store.cart.add_adr('shipping');
 								});
 							},"Nous devons vous identifier pour enregistrer votre adresse"); // provideLoginUI sipping
 						}); // click
 						cart.find('.set_billing_button').click(function(){
 							KaraCos.authManager.provideLoginUI(function(){
-								verify_email(function(){
+								cart.verify_email(function(){
 									KaraCos.Store.cart.add_adr('billing');
 								});
 							},"Nous devons vous identifier pour enregistrer votre adresse");// provideLoginUI billing
@@ -499,6 +501,30 @@ define('store/shoppingCart',
 									if (data.message) {
 										validation_message.empty()
 											.append(data.message);
+										if (data.type === "billing") {
+											var billButton = $("<button>Ajouter adresse de facturation</button>");
+											billButton.click(function(){
+												KaraCos.authManager.provideLoginUI(function(){
+													cart.verify_email(function(){
+														KaraCos.Store.cart.add_adr('billing');
+														validation_message.dialog('destroy');
+													});
+												},"Nous devons vous identifier pour enregistrer votre adresse"); // provideLoginUI sipping
+											}); // click
+											validation_message.append(billButton);
+										}
+										if (data.type === "shipping") {
+											var shipButton = $("<button>Ajouter adresse de livraison</button>");
+											shipButton.click(function(){
+												KaraCos.authManager.provideLoginUI(function(){
+													cart.verify_email(function(){
+														KaraCos.Store.cart.add_adr('shipping');
+														validation_message.dialog('destroy');
+													});
+												},"Nous devons vous identifier pour enregistrer votre adresse"); // provideLoginUI sipping
+											}); // click
+											validation_message.append(shipButton);
+										}
 										if (data.type === "email") {
 											validation_message.append('<div> \
 														<div>Please enter a valid email</div> \

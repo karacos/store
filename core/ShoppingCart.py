@@ -208,8 +208,7 @@ class ShoppingCart(karacos.db['Node']):
         """
         Check if enough data in cart (regarding each item requirement)
         """
-        if 'billing_adr' not in self:
-            return (False,'billling')
+        
             # Billing adress is required
             # raise karacos.http.DataRequired(self.__store__,self.__store__.add_cart_billing,
             #                                backlink = "/%s/validate_cart"%self.__store__.get_relative_uri(),
@@ -221,6 +220,8 @@ class ShoppingCart(karacos.db['Node']):
                 result = self.db[item_key]._do_cart_validation(self)
             except:
                 return (False, 'unknown')
+        if 'billing_adr' not in self:
+            return (False,'billing')
         if result[0]:
             self['validated'] = True
             self.save()
