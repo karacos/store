@@ -492,12 +492,8 @@ define('store/shoppingCart',
 								
 							},
 							error: function(data) {
-								cart.find(".pay_button").hide();
-								if (handlersRegistry.returnHandlers['validate_cart'] !== undefined) {
-									handlersRegistry.returnHandlers['validate_cart'](data, undefined, function(){
-										cart.check_state();
-									});
-								} else {
+								
+								var cart_validate_handle = function(data) {
 									if (data.message) {
 										validation_message.empty()
 											.append(data.message);
@@ -565,6 +561,15 @@ define('store/shoppingCart',
 										}
 										validation_message.dialog({modal: true});
 									}
+								};
+								
+								cart.find(".pay_button").hide();
+								if (handlersRegistry.returnHandlers['validate_cart'] !== undefined) {
+									handlersRegistry.returnHandlers['validate_cart'](data, undefined, function(){
+										cart_validate_handle(data);
+									});
+								} else {
+									cart_validate_handle(data);
 								}
 							}
 						});

@@ -49,7 +49,7 @@ if 'main_pic' in instance:
 		<div class=inside" id="item_info">
 		% try:
 			<div id="item_price">
-			Prix : <span class="store_price" property="public_price">${instance['public_price']}</span>
+			Prix : <span class="kc_property store_price" property="public_price">${instance['public_price']}</span>
 			</div>
 			## item_price
 			<div id="item_weight"
@@ -57,7 +57,7 @@ if 'main_pic' in instance:
 				style="display:none;"
 			% endif
 			>
-			Poids : <span class="store_weight" property="weight">${instance['weight']}</span>
+			Poids : <span class="kc_property store_weight" property="weight">${instance['weight']}</span>
 			</div>
 			% if isstaff:
 				%if 'stock' not in instance:
@@ -68,11 +68,11 @@ if 'main_pic' in instance:
             	% endif
 			<div id="admin_properties">
 				<div>Notice : Si le prix net est renseigne le prix public sera remplace par le prix net auquel sera applique les taxes</div> 
-				<div>Prix NET : <span class="store_price" property="price">${instance['price']}</span></div>
-				<div>Prix d'achat : <span class="store_price" property="buy_cost">${instance['buy_cost']}</span></div>
-				<div>Prix de vente mini : <span class="store_price" property="min_sell_price">${instance['min_sell_price']}</span></div>
-				<div>stock : <span class="store_stock" property="stock">${instance['stock']}</span></div>
-				<div>Taxe : <span class="store_price" property="tax">${instance['tax']}</span></div>
+				<div>Prix NET : <span class="kc_property" property="price">${instance['price']}</span></div>
+				<div>Prix d'achat : <span class="kc_property" property="buy_cost">${instance['buy_cost']}</span></div>
+				<div>Prix de vente mini : <span class="kc_property" property="min_sell_price">${instance['min_sell_price']}</span></div>
+				<div>stock : <span class="kc_property store_stock" property="stock">${instance['stock']}</span></div>
+				<div>Taxe : <span class="kc_property" property="tax">${instance['tax']}</span></div>
 			</div> 
 			## admin_properties
 			% endif
@@ -129,7 +129,7 @@ require(['jquery'], function($) {
 		karacos.authManager.authenticationHeader();
 	% endif
 	$('body').bind('kcstore', function() {
-		var auth = karacos.authManager;
+		/* var auth = karacos.authManager;
 			require(['/fragment/actions_menu.js?instance_id=' +
 					         karacos.config.page_id + "&base_id=" + karacos.config.page_base_id],
 		        function(actionsMenu) {
@@ -139,7 +139,7 @@ require(['jquery'], function($) {
 							actionMenu.actionWindow = karacos('<div/>');
 							$('body').append(karacos.actionMenu.actionWindow);
 						}
-						<%include file="${instance.get_menu_template_uri()}"/>
+						##<%include file="${instance.get_menu_template_uri()}"/>
 				})($('#hardItem_side_menu'));
 			});
 			$('#hardItem_side_menu').menu();
@@ -214,9 +214,9 @@ require(['jquery'], function($) {
 				$img.width(imgwidth).height(imgheight);
 				
 			});
-		
+		*/
 			karacos.Store.init({url:'${instance.__store__._get_action_url()}'});
-		});
+		}); 
 		karacos.parse_social();
 	});
 });
